@@ -1,0 +1,28 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+/queries/
+/dataSources/
+/dataSources.local.xml
+/httpRequests/
+
+# Virtual Environment
+.venv/
+venv/
+
+# PyCharm
+.idea/
+*.iml
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Environment variables
+.env
+
+# Django
+db.sqlite3
+
+# Media
+images/
