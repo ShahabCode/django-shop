@@ -10,7 +10,7 @@
 
             {% for item in cart %}
 
-                <div class="product-item">
+                <div class="product-item" data-item-id="{{ item.product.id }}">
                     <a href="{% url 'shop:product_detail' item.product.id item.product.slug  %}">
                         <img src="{{ item.product.images.first.file.url }}" class="product-image">
                     </a>
@@ -20,9 +20,9 @@
                             نام محصول : {{ item.product.name }}
                             </a>
                         </h3>
-                        <p>تعداد: <span>{{ item.quantity }}</span></p>
+                        <p>تعداد: <span id="item-quantity-{{ item.product.id }}">{{ item.quantity }}</span></p>
                         <p>قیمت هر محصول: <span>{{ item.price }}</span></p>
-                        <p>قیمت کل: <span>{{ item.total }}</span></p>
+                        <p>قیمت کل: <span id="item-total-{{ item.product.id }}">{{ item.total }}</span></p>
                     </div>
                     <div class="actions">
                         <div class="quantity-add">+</div>
@@ -34,9 +34,9 @@
             {% endfor %}
 
         <div class="total-price">
-            <p>قیمت کل:<span>{{ cart.get_total_price }}</span>تومان </p>
-            <p>هزینه ارسال:<span>{{ cart.get_post_price}}</span>تومان </p>
-            <p>مبلغ قابل پرداخت:<span>{{ cart.get_final_price}}</span>تومان </p>
+            <p>قیمت کل:<span id="item-total-price">{{ cart.get_total_price }}</span>تومان </p>
+            <p>هزینه ارسال:<span id="item-post-price">{{ cart.get_post_price}}</span>تومان </p>
+            <p>مبلغ قابل پرداخت:<span id="item-final-price">{{ cart.get_final_price}}</span>تومان </p>
         </div>
 
         <div class="checkout-buttons">
@@ -44,4 +44,43 @@
             <div class="back-btn"><a href="{% url 'shop:products' %}">برگشت به لیست محصولات</a></div>
         </div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/4.0.0/jquery.min.js" integrity="sha512-8LENNbXmzI/Gbj+OwXmqR6V4QaUAw0/porPzy1+dQoJqC0JPHedWoe0DDOTL2uHA5XXJyIsPtiMHH86pVlay6A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        $(document).ready(function (){
+            $('.quantity-add').on('click', function (){
+                updateQuantity($(this).closest('.product-item').data('item-id'), 'add');
+            });
+
+            $('.quantity-decrease').on('click', function (){
+                updateQuantity($(this).closest('.product-item').data('item-id'), 'decrease');
+            });
+
+            function updateQuantity(itemId, action){
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url 'cart:update_quantity' %}',
+                    data: {
+                        'item_id': itemId,
+                        'action': action,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    success: function (response){
+                        if (response.success){
+                            $('#item_count').text(response.item_count);
+                            $('#total_price').text(response.total_price)
+                            $('#item-quantity-' + itemId).text(response.quantity)
+                            $('#item-total-' + itemId).text(response.total)
+                            $('#item-total-price').text(response.total_price)
+                            $('#item-final-price').text(response.final_price)
+
+                        } else {
+                            alert('Error Updating Quantity!')
+                        }
+                    }
+                })
+            }
+        })
+    </script>
+
 {% endblock %}
