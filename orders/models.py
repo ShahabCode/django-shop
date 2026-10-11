@@ -5,7 +5,8 @@ from shop.models import Product
 
 # Create your models here.
 class Order(models.Model):
-    name = models.CharField(max_length=200)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
     phone = models.CharField(max_length=11)
     address = models.CharField(max_length=250)
     postcode = models.CharField(max_length=10)
@@ -54,4 +55,4 @@ class OrderItem(models.Model):
         return self.quantity * self.price
 
     def get_weight(self):
-        return self.weight
+        return self.weight * self.quantity
