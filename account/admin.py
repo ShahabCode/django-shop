@@ -19,7 +19,7 @@ class ShopUserAdmin(UserAdmin):
     )
 
     add_fieldsets = (
-        (None, {'fields': ('phone', 'password')}),
+        (None, {'fields': ('phone', 'password1', 'password2')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'address')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('dates', {'fields': ('date_joined', 'last_login')}),
