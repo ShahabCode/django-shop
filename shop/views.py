@@ -9,6 +9,17 @@ def product_list(request, category_slug=None):
     if category_slug:
         category = get_object_or_404(Category, slug=category_slug)
         products = products.filter(category=category)
+
+    sort = request.GET.get('sort', 'newest')
+
+    if sort == 'cheapest':
+        products = products.order_by('new_price')
+    elif sort == 'expensive':
+        products = products.order_by('-new_price')
+    else:
+        sort = 'newest'
+        products = products.order_by('-created')
+
     context = {
         'category': category,
         'categories': categories,

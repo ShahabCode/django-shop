@@ -184,3 +184,46 @@ a:link, a:visited{
     border: 1px solid #ccc;
     background-color: #0c1433;
 }
+
+/* Product Sorting */
+.sorting {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 12px;
+    background-color: #333;
+    border-radius: 5px;
+    color: #fff;
+    grid-column: 1 / -1;
+}
+
+.sorting label {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.sorting select {
+    padding: 8px 12px;
+    background-color: #0c1433;
+    color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+}
+
+.sorting select:hover {
+    border-color: #fff;
+}
+
+.sorting select:focus {
+    border-color: #5bc0be;
+}
+
+.sorting select option {
+    background-color: #333;
+    color: #fff;
+}
