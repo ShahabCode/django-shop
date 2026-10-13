@@ -54,6 +54,23 @@
                     </div>
                 </div>
             {% endfor %}
+            <div class="pagination">
+                {% if products.has_previous %}
+                    <a href="?page={{ products.previous_page_number }}&sort={{ sort }}">
+                        قبلی
+                    </a>
+                {% endif %}
+
+                <span>
+                    صفحه {{ products.number }} از {{ products.paginator.num_pages }}
+                </span>
+
+                {% if products.has_next %}
+                    <a href="?page={{ products.next_page_number }}&sort={{ sort }}">
+                        بعدی
+                    </a>
+                {% endif %}
+            </div>
         </div>
     </div>
 {% endblock %}

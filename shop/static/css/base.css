@@ -227,3 +227,28 @@ a:link, a:visited{
     background-color: #333;
     color: #fff;
 }
+
+.pagination {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    margin-top: 10px;
+    background-color: #333;
+    border-radius: 5px;
+    color: #fff;
+}
+
+.pagination a {
+    padding: 8px 14px;
+    background-color: #0c1433;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.pagination a:hover {
+    background-color: #5bc0be;
+    color: #0c1433;
+}
