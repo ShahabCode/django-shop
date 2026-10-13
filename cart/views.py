@@ -40,10 +40,10 @@ def update_quantity(request):
         context = {
             'item_count': len(cart),
             'total_price': cart.get_total_price(),
-
+            'post_price': cart.get_post_price(),
             'quantity': cart.cart[item_id]['quantity'],
             'total': cart.cart[item_id]['quantity'] * cart.cart[item_id]['price'],
-            'final_price': cart.get_total_price(),
+            'final_price': cart.get_final_price(),
 
             'success': True
         }
@@ -63,7 +63,8 @@ def remove_item(request):
         context = {
             'item_count': len(cart),
             'total_price': cart.get_total_price(),
-            'final_price': cart.get_total_price(),
+            'final_price': cart.get_final_price(),
+            'post_price': cart.get_post_price(),
             'success': True
         }
         return JsonResponse(context)

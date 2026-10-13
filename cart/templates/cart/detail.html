@@ -74,8 +74,9 @@
                             $('#item_count').text(response.item_count);
                             $('#total_price').text(response.total_price)
                             $('#item-quantity-' + itemId).text(response.quantity)
-                            $('#item-total-' + itemId).text(response.total)
+                            $('#item-total-' + itemId).text(response.total_price)
                             $('#item-total-price').text(response.total_price)
+                            $('#item-post-price').text(response.post_price);
                             $('#item-final-price').text(response.final_price)
 
                         } else {
@@ -97,9 +98,8 @@
                         if (response.success){
                             $('#item_count').text(response.item_count);
                             $('#total_price').text(response.total_price)
-                            $('#item-quantity-' + itemId).text(response.quantity)
-                            $('#item-total-' + itemId).text(response.total)
                             $('#item-total-price').text(response.total_price)
+                            $('#item-post-price').text(response.post_price);
                             $('#item-final-price').text(response.final_price)
                             $(`.product-item[data-item-id=${itemId}]`).remove()
 

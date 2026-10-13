@@ -40,19 +40,27 @@ class Cart:
         self.save()
 
 
+    def get_total_price(self):
+        products = Product.objects.filter(id__in=self.cart.keys())
+
+        return sum(
+            product.new_price * self.cart[str(product.id)]['quantity']
+            for product in products
+        )
+
+
     def get_post_price(self):
-        weight = sum(item['weight'] * item['quantity'] for item in self.cart.values())
+        products = Product.objects.filter(id__in=self.cart.keys())
+
+        weight = sum(
+            product.weight * self.cart[str(product.id)]['quantity']
+            for product in products
+        )
         if weight < 1000:
             return 20000
-        elif 1000 <= weight < 2000:
+        elif weight < 2000:
             return 30000
-        else:
-            return 50000
-
-
-    def get_total_price(self):
-        price = sum(item['price'] * item['quantity'] for item in self.cart.values())
-        return price
+        return 50000
 
 
     def get_final_price(self):
@@ -64,13 +72,17 @@ class Cart:
 
 
     def __iter__(self):
-        product_ids = self.cart.keys()
-        products = Product.objects.filter(id__in=product_ids)
-        cart_dict = self.cart.copy()
+        products = Product.objects.filter(id__in=self.cart.keys())
+
         for product in products:
-            cart_dict[str(product.id)]['product'] = product
-        for item in cart_dict.values():
+            product_id = str(product.id)
+            item = self.cart[product_id].copy()
+
+            item['price'] = product.new_price
+            item['weight'] = product.weight
+            item['product'] = product
             item['total'] = item['price'] * item['quantity']
+
             yield item
 
 
