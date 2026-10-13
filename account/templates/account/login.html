@@ -1,0 +1,48 @@
+{% extends 'parent/base.html' %}
+
+{% block title %}ورود به حساب{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2>ورود به حساب کاربری</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {% if error %}
+            <p class="error-message">{{ error }}</p>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="phone">شماره موبایل</label>
+            <input
+                type="text"
+                id="phone"
+                name="phone"
+                maxlength="11"
+                pattern="09[0-9]{9}"
+                placeholder="09123456789"
+                required
+                dir="ltr"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="password">رمز عبور</label>
+            <input
+                type="password"
+                id="password"
+                name="password"
+                required
+            >
+        </div>
+
+        <button type="submit">ورود</button>
+    </form>
+
+    <p class="auth-link">
+        حساب کاربری نداری؟
+        <a href="{% url 'account:register' %}">ثبت ‌نام کن</a>
+    </p>
+</div>
+{% endblock %}

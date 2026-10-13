@@ -1,0 +1,40 @@
+{% extends 'parent/base.html' %}
+
+{% block title %}ثبت‌نام{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2>ایجاد حساب کاربری</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                </label>
+
+                {{ field }}
+
+                {% for error in field.errors %}
+                    <p class="error-message">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+                <p class="error-message">{{ error }}</p>
+            {% endfor %}
+        {% endif %}
+
+        <button type="submit">ثبت‌نام</button>
+    </form>
+
+    <p class="auth-link">
+        قبلاً ثبت‌نام کردی؟
+        <a href="{% url 'account:login' %}">وارد شو</a>
+    </p>
+</div>
+{% endblock %}

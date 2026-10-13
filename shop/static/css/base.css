@@ -278,3 +278,57 @@ a:link, a:visited{
 .related-products-grid .product h3 {
     color: #fff;
 }
+
+.auth-container {
+    max-width: 400px;
+    margin: 40px auto;
+    padding: 25px;
+    background: #333;
+    color: #fff;
+    border-radius: 8px;
+}
+
+.auth-container h2 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.auth-container .form-group {
+    margin-bottom: 18px;
+}
+
+.auth-container label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.auth-container input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.auth-container button {
+    width: 100%;
+    padding: 12px;
+    background: #5bc0be;
+    color: #0c1433;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.auth-container .error-message {
+    color: #ff7777;
+}
+
+.auth-container .auth-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.auth-container a {
+    color: #6fffe9;
+}

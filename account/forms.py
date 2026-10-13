@@ -28,8 +28,7 @@ class PhoneValidationMixin:
 class ShopUserCreationForm(PhoneValidationMixin, UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = ShopUser
-        fields = ['phone', 'first_name', 'last_name', 'address',
-                  'is_staff', 'is_active', 'is_superuser']
+        fields = ['phone', 'first_name', 'last_name', 'address']
 
 
 class ShopUserChangeForm(PhoneValidationMixin, UserChangeForm):
