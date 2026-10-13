@@ -252,3 +252,29 @@ a:link, a:visited{
     background-color: #5bc0be;
     color: #0c1433;
 }
+
+.related-products {
+    margin: 20px;
+    padding: 20px;
+    background-color: slategrey;
+}
+
+.related-products h2 {
+    text-align: center;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.related-products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.related-products-grid .product {
+    background-color: #333;
+}
+
+.related-products-grid .product h3 {
+    color: #fff;
+}

@@ -35,7 +35,12 @@ def product_list(request, category_slug=None):
 
 def product_detail(request, id, slug):
     product = get_object_or_404(Product, id=id, slug=slug)
+
+    related_products = Product.objects.filter(
+        category=product.category).exclude(id=product.id)[:4]
+
     context = {
-        'product': product
+        'product': product,
+        'related_products': related_products
     }
     return render(request, 'shop/detail.html', context)
