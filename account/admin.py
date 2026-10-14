@@ -13,14 +13,18 @@ class ShopUserAdmin(UserAdmin):
     list_display = ['phone', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_staff']
     fieldsets = (
         (None, {'fields': ('phone', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'address')}),
+        ('Personal info', {'fields': ('first_name', 'last_name')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('dates', {'fields': ('date_joined', 'last_login')}),
     )
 
     add_fieldsets = (
         (None, {'fields': ('phone', 'password1', 'password2')}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'address')}),
+        ('Personal info', {'fields': ('first_name', 'last_name')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('dates', {'fields': ('date_joined', 'last_login')}),
     )
+
+@admin.register(Address)
+class AddressAdmin(admin.ModelAdmin):
+    list_display = ['title', 'user', 'city', 'postal_code', 'is_default']

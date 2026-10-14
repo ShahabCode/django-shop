@@ -1,0 +1,59 @@
+
+{% extends 'parent/base.html' %}
+
+{% block title %}آدرس‌های من{% endblock %}
+
+{% block content %}
+    <div class="header">
+        <h1>آدرس‌های من</h1>
+    </div>
+
+    <div class="address-page">
+
+        <div class="address-form-container">
+            <h2>افزودن آدرس جدید</h2>
+
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                <button type="submit" class="address-submit-btn">
+                    افزودن آدرس
+                </button>
+            </form>
+        </div>
+
+        <div class="address-list-container">
+            <h2>آدرس‌های پیش‌فرض</h2>
+
+            {% for address in addresses %}
+                {% if address.is_default %}
+                    <div class="address-card default-address">
+                        <h3>{{ address.title }}</h3>
+                        <p>{{ address.province }}، {{ address.city }}</p>
+                        <p>{{ address.address }}</p>
+                        <span class="default-badge">آدرس پیش‌فرض</span>
+                    </div>
+                {% endif %}
+            {% empty %}
+                <p>هنوز آدرسی ثبت نکرده‌اید.</p>
+            {% endfor %}
+
+            <h2>آدرس‌های دیگر</h2>
+
+            {% for address in addresses %}
+                {% if not address.is_default %}
+                    <div class="address-card">
+                        <h3>{{ address.title }}</h3>
+                        <p>{{ address.province }}، {{ address.city }}</p>
+                        <p>{{ address.address }}</p>
+                        <p>کد پستی: {{ address.postal_code }}</p>
+                    </div>
+                {% endif %}
+            {% empty %}
+                <p>هنوز آدرسی ثبت نکرده‌اید.</p>
+            {% endfor %}
+        </div>
+
+    </div>
+{% endblock %}

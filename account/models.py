@@ -30,7 +30,6 @@ class ShopUser(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField(max_length=11, unique=True)
     first_name = models.CharField(max_length=25)
     last_name = models.CharField(max_length=25)
-    address = models.TextField(max_length=250)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
@@ -42,3 +41,29 @@ class ShopUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.phone
+
+
+class Address(models.Model):
+    user = models.ForeignKey(ShopUser, on_delete=models.CASCADE, related_name='addresses')
+    title = models.CharField(max_length=50)
+    province = models.CharField(max_length=50)
+    city = models.CharField(max_length=50)
+    address = models.TextField(max_length=500)
+    postal_code = models.CharField(max_length=10)
+    is_default = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if self.is_default:
+            Address.objects.filter(
+                user=self.user,
+                is_default=True
+            ).exclude(pk=self.pk).update(is_default=False)
+
+        elif not self.user.addresses.exists():
+            self.is_default = True
+
+        super().save(*args, **kwargs)
+

@@ -332,3 +332,119 @@ a:link, a:visited{
 .auth-container a {
     color: #6fffe9;
 }
+
+
+.address-page {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 25px;
+    align-items: start;
+}
+
+.address-form-container,
+.address-list-container {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+}
+
+.address-form-container h2,
+.address-list-container h2 {
+    font-size: 20px;
+    margin: 0 0 20px;
+    color: #222;
+}
+
+.address-form-container form p {
+    margin-bottom: 16px;
+}
+
+.address-form-container label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: 500;
+}
+
+.address-form-container input:not([type="checkbox"]),
+.address-form-container textarea,
+.address-form-container select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 7px;
+    box-sizing: border-box;
+    font: inherit;
+}
+
+.address-form-container input:focus,
+.address-form-container textarea:focus,
+.address-form-container select:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.address-submit-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 7px;
+    background: #2c7be5;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.address-submit-btn:hover {
+    background: #1a68d1;
+}
+
+.address-list-container h2:not(:first-child) {
+    margin-top: 30px;
+}
+
+.address-card {
+    padding: 18px;
+    margin-bottom: 15px;
+    border: 1px solid #e5e5e5;
+    border-radius: 9px;
+    overflow-wrap: anywhere;
+}
+
+.address-card h3 {
+    margin: 0 0 12px;
+    font-size: 17px;
+    color: #222;
+}
+
+.address-card p {
+    margin: 8px 0;
+    line-height: 1.8;
+    color: #555;
+}
+
+.default-address {
+    border-color: #2c7be5;
+    background: #f5f9ff;
+}
+
+.default-badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: #e0edff;
+    color: #1a68d1;
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+    .address-page {
+        grid-template-columns: 1fr;
+        padding: 0 15px;
+    }
+}

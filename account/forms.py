@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from .models import ShopUser
+from .models import ShopUser, Address
+
 
 class PhoneValidationMixin:
     def clean_phone(self):
@@ -28,11 +29,16 @@ class PhoneValidationMixin:
 class ShopUserCreationForm(PhoneValidationMixin, UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = ShopUser
-        fields = ['phone', 'first_name', 'last_name', 'address']
+        fields = ['phone', 'first_name', 'last_name']
 
 
 class ShopUserChangeForm(PhoneValidationMixin, UserChangeForm):
     class Meta(UserChangeForm.Meta):
         model = ShopUser
-        fields = ['phone', 'first_name', 'last_name', 'address',
+        fields = ['phone', 'first_name', 'last_name',
                   'is_staff', 'is_active', 'is_superuser']
+
+class AddressForm(forms.ModelForm):
+    class Meta:
+        model = Address
+        fields = ['title', 'province', 'city', 'address', 'postal_code', 'is_default']

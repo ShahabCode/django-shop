@@ -1,6 +1,9 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from .forms import ShopUserCreationForm
+from .forms import ShopUserCreationForm, AddressForm
+from .models import Address
+
 
 # Create your views here.
 def register(request):
@@ -35,3 +38,21 @@ def user_login(request):
 def user_logout(request):
     logout(request)
     return redirect('shop:products')
+
+
+@login_required()
+def address_list(request):
+    if request.method == 'POST':
+        form = AddressForm(request.POST)
+        if form.is_valid():
+            address = form.save(commit=False)
+            address.user = request.user
+            address.save()
+            return redirect('account:address_list')
+    else:
+        form = AddressForm()
+
+    addresses = request.user.addresses.all()
+    context = {'form': form, 'addresses': addresses}
+
+    return render(request, 'account/address_list.html', context)
