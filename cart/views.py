@@ -3,6 +3,7 @@ from django.views.decorators.http import require_POST
 from shop.models import Product
 from .cart import Cart
 from django.http import JsonResponse
+from .common.KaveSms import send_sms_normal, send_sms_with_template
 
 # Create your views here.
 @require_POST
