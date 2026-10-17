@@ -1,4 +1,5 @@
 from django import forms
+from .models import Order
 
 class PhoneVerificationForm(forms.Form):
     phone = forms.CharField(label='شماره موبایل', max_length=11)
@@ -13,3 +14,11 @@ class PhoneVerificationForm(forms.Form):
             raise forms.ValidationError('شماره موبایل باید ۱۱ رقم باشد و با 09 شروع شود.')
 
         return phone
+
+
+class OrderCreateForm(forms.ModelForm):
+    phone = PhoneVerificationForm()
+    class Meta:
+        model = Order
+        fields = ('first_name', 'last_name', 'phone', 'address',
+                  'postcode', 'province', 'city')
