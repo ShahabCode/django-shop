@@ -85,8 +85,8 @@ class Cart:
 
             yield item
 
-
     def save(self):
+        self.session['cart'] = self.cart
         self.session.modified = True
 
 
