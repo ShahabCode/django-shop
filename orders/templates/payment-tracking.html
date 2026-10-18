@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>وضعیت پرداخت</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: #f3f4f6;
+            font-family: Tahoma, Arial, sans-serif;
+            color: #1f2937;
+        }
+
+        .payment-card {
+            width: 100%;
+            max-width: 430px;
+            padding: 35px 25px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        .status-icon {
+            width: 76px;
+            height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            font-size: 38px;
+            font-weight: bold;
+        }
+
+        .success .status-icon {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .failed .status-icon {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        h1 {
+            margin: 0 0 15px;
+            font-size: 23px;
+        }
+
+        .success h1 {
+            color: #16a34a;
+        }
+
+        .failed h1 {
+            color: #dc2626;
+        }
+
+        .message {
+            margin-bottom: 25px;
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 2;
+        }
+
+        .details {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 10px;
+            text-align: right;
+            font-size: 14px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            color: #6b7280;
+        }
+
+        .detail-value {
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            padding: 13px;
+            border-radius: 9px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .button:hover {
+            background: #1d4ed8;
+        }
+
+        .failed .button {
+            background: #4b5563;
+        }
+
+        .failed .button:hover {
+            background: #374151;
+        }
+
+        @media (max-width: 400px) {
+            .payment-card {
+                padding: 28px 18px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="payment-card {% if success %}success{% else %}failed{% endif %}">
+
+        {% if success %}
+
+            <div class="status-icon">✓</div>
+
+            <h1>پرداخت موفق</h1>
+
+            <p class="message">
+                سفارش شما با موفقیت پرداخت شد.
+                از خرید شما سپاسگزاریم.
+            </p>
+
+            <div class="details">
+
+                <div class="detail-row">
+                    <span class="detail-label">شماره سفارش</span>
+                    <span class="detail-value">{{ order_id }}</span>
+                </div>
+
+                {% if RefID %}
+                    <div class="detail-row">
+                        <span class="detail-label">شماره پیگیری</span>
+                        <span class="detail-value">{{ RefID }}</span>
+                    </div>
+                {% endif %}
+
+                <div class="detail-row">
+                    <span class="detail-label">وضعیت</span>
+                    <span class="detail-value">پرداخت‌شده</span>
+                </div>
+
+            </div>
+
+        {% else %}
+
+            <div class="status-icon">×</div>
+
+            <h1>پرداخت ناموفق</h1>
+
+            <p class="message">
+                پرداخت سفارش شما تأیید نشد.
+                ممکن است پرداخت لغو شده باشد یا تراکنش با خطا مواجه شده باشد.
+            </p>
+
+        {% endif %}
+
+        <a href="/" class="button">بازگشت به صفحه اصلی</a>
+
+    </main>
+
+</body>
+</html>

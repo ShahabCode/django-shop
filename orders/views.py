@@ -1,13 +1,20 @@
+from pydoc import describe
+
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .forms import PhoneVerificationForm, OrderCreateForm
 from account.models import ShopUser
-from .models import OrderItem
+from .models import OrderItem, Order
 from cart.cart import Cart
 import random
 from django.contrib.auth import login
 from cart.common.KaveSms import send_sms_with_template
+from django.conf import settings
+from django.shortcuts import redirect
+from django.http import HttpResponse
+import requests
+import json
 
 # Create your views here.
 def verify_phone(request):
@@ -63,13 +70,145 @@ def order_create(request):
         form = OrderCreateForm(request.POST)
         if form.is_valid():
             order = form.save()
+            order.buyer = request.user
+            order.save()
             for item in cart:
                 OrderItem.objects.create(order=order, product=item["product"], quantity=item["quantity"],
                                          price=item["price"], weight=item["weight"])
-            print("Before clear:", request.session.get('cart'))
             cart.clear()
-            print("After clear:", request.session.get('cart'))
-            return redirect('shop:products')
+            request.session['order_id'] = order.id
+            return redirect('orders:request')
     else:
         form = OrderCreateForm()
     return render(request, 'order_create.html', {'form': form, 'cart': cart})
+
+
+
+# ? sandbox merchant
+if settings.SANDBOX:
+    ZP_API_REQUEST = "https://sandbox.zarinpal.com/pg/v4/payment/request.json"
+    ZP_API_VERIFY = "https://sandbox.zarinpal.com/pg/v4/payment/verify.json"
+    ZP_API_STARTPAY = "https://sandbox.zarinpal.com/pg/StartPay/"
+else:
+    ZP_API_REQUEST = "https://payment.zarinpal.com/pg/v4/payment/request.json"
+    ZP_API_VERIFY = "https://payment.zarinpal.com/pg/v4/payment/verify.json"
+    ZP_API_STARTPAY = "https://www.zarinpal.com/pg/StartPay/"
+
+CallbackURL = 'http://127.0.0.1:8000/order/verify/'
+
+
+def send_request(request):
+    order = Order.objects.get(id=request.session['order_id'])
+
+    description = ", ".join(
+        item.product.name for item in order.items.all()
+    )
+
+    data = {
+        "merchant_id": settings.MERCHANT,
+        "amount": int(order.get_final_cost()),
+        "description": description[:500],
+        "callback_url": CallbackURL,
+        "metadata": {
+            "mobile": request.user.phone,
+        },
+    }
+
+    try:
+        response = requests.post(
+            ZP_API_REQUEST,
+            json=data,
+            timeout=10,
+        )
+
+        response_json = response.json()
+        print(response.status_code, response_json)
+
+        if response.status_code == 200:
+            if response_json.get("data", {}).get("code") == 100:
+                authority = response_json["data"]["authority"]
+                return redirect(ZP_API_STARTPAY + authority)
+
+        return HttpResponse(
+            f"Payment error: {response_json}"
+        )
+
+    except requests.exceptions.Timeout:
+        return HttpResponse("Timeout Error")
+
+    except requests.exceptions.ConnectionError:
+        return HttpResponse("Connection Error")
+
+    except ValueError:
+        return HttpResponse("Invalid JSON response from Zarinpal")
+
+
+def verify(request):
+    order = Order.objects.get(id=request.session['order_id'])
+
+    authority = request.GET.get("Authority")
+    status = request.GET.get("Status")
+
+    if status != "OK" or not authority:
+        return render(
+            request,
+            "payment-tracking.html",
+            {"success": False},
+        )
+
+    data = {
+        "merchant_id": settings.MERCHANT,
+        "amount": int(order.get_final_cost()),
+        "authority": authority,
+    }
+
+    try:
+        response = requests.post(
+            ZP_API_VERIFY,
+            json=data,
+            timeout=10,
+        )
+
+        response_json = response.json()
+        print(response.status_code, response_json)
+
+        code = response_json.get("data", {}).get("code")
+
+        if response.status_code == 200 and code in (100, 101):
+            # جلوگیری از کم شدن دوباره موجودی
+            if not order.paid:
+                for item in order.items.all():
+                    item.product.inventory -= item.quantity
+                    item.product.save()
+
+                order.paid = True
+                order.save()
+
+            reference_id = response_json["data"].get("ref_id")
+
+            request.session.pop("order_id", None)
+
+            return render(
+                request,
+                "payment-tracking.html",
+                {
+                    "success": True,
+                    "RefID": reference_id,
+                    "order_id": order.id,
+                },
+            )
+
+        return render(
+            request,
+            "payment-tracking.html",
+            {"success": False},
+        )
+
+    except requests.exceptions.Timeout:
+        return HttpResponse("Timeout Error")
+
+    except requests.exceptions.ConnectionError:
+        return HttpResponse("Connection Error")
+
+    except ValueError:
+        return HttpResponse("Invalid JSON response from Zarinpal")

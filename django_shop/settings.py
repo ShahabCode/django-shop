@@ -135,3 +135,7 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+
+MERCHANT = "a8098c1a-f86e-41b2-bd1b-89c4d7f4a123"
+SANDBOX = True
