@@ -212,3 +212,14 @@ def verify(request):
 
     except ValueError:
         return HttpResponse("Invalid JSON response from Zarinpal")
+
+
+def orders_list(request):
+    user = request.user
+    orders = Order.objects.filter(buyer=user)
+    return render(request, 'orders_list.html', {'orders': orders})
+
+
+def order_detail(request, order_id):
+    order = Order.objects.get(id=order_id)
+    return render(request, 'order_detail.html', {'order': order})
