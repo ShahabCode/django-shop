@@ -17,6 +17,18 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     paid = models.BooleanField(default=False)
 
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'در انتظار پرداخت'
+        CONFIRMED = 'confirmed', 'تأیید شده'
+        PROCESSING = 'processing', 'در حال آماده‌سازی'
+        CANCELLED = 'cancelled', 'لغو شده'
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
+
     class Meta:
         ordering = ['-created_at']
         indexes = [
@@ -41,6 +53,7 @@ class Order(models.Model):
     def get_final_cost(self):
         price = self.get_post_cost() + self.get_total_cost()
         return price
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
