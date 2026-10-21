@@ -22,3 +22,9 @@ class OrderCreateForm(forms.ModelForm):
         model = Order
         fields = ('first_name', 'last_name', 'phone', 'address',
                   'postcode', 'province', 'city')
+
+
+class OrderStatusForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ('status',)

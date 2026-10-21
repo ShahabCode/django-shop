@@ -43,3 +43,10 @@ def send_sms_normal(receptor, message):
         print(e)
     except HTTPError as e:
         print(e)
+
+
+def send_sms_normal_print(receptor, message):
+    print('========== SMS SIMULATION ==========')
+    print(f'To: {receptor}')
+    print(f'Message: {message}')
+    print('====================================')

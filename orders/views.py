@@ -1,9 +1,10 @@
 from pydoc import describe
 
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .forms import PhoneVerificationForm, OrderCreateForm
+from .forms import PhoneVerificationForm, OrderCreateForm, OrderStatusForm
 from account.models import ShopUser
 from .models import OrderItem, Order
 from cart.cart import Cart
@@ -15,6 +16,9 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 import requests
 import json
+
+from .services import notify_order_status_change
+
 
 # Create your views here.
 def verify_phone(request):
@@ -223,3 +227,24 @@ def orders_list(request):
 def order_detail(request, order_id):
     order = Order.objects.get(id=order_id)
     return render(request, 'order_detail.html', {'order': order})
+
+
+
+@staff_member_required
+def change_order_status(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    if request.method == 'POST':
+        form = OrderStatusForm(request.POST, instance=order)
+
+        if form.is_valid():
+            old_status = Order.objects.get(pk=order.pk).status
+            updated_order = form.save()
+
+            notify_order_status_change(updated_order, old_status)
+
+            return redirect('orders:order_detail', order_id=order.id)
+    else:
+        form = OrderStatusForm(instance=order)
+
+    return render(request,'change_order_status.html',{'form': form, 'order': order})

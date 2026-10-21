@@ -2,6 +2,8 @@ from django.contrib import admin
 from .models import Order, OrderItem
 import openpyxl
 from django.http import HttpResponse
+from cart.common.KaveSms import send_sms_normal, send_sms_normal_print
+from .services import notify_order_status_change
 
 # Register your models here.
 
@@ -38,6 +40,16 @@ class OrderAdmin(admin.ModelAdmin):
     list_filter = ['paid', 'status', 'created_at', 'updated_at']
     inlines = [OrderItemInline]
     actions = [export_to_excel]
+
+    def save_model(self, request, obj, form, change):
+        old_status = None
+        if change:
+            old_status = Order.objects.get(pk=obj.pk).status
+
+        super().save_model(request, obj, form, change)
+        notify_order_status_change(obj, old_status)
+
+
 
 
 @admin.register(OrderItem)

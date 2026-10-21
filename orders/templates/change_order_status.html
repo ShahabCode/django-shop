@@ -1,0 +1,27 @@
+```html
+{% extends "parent/base.html" %}
+
+{% block content %}
+    <h2>تغییر وضعیت سفارش شماره {{ order.id }}</h2>
+
+    <p>
+        خریدار: {{ order.first_name }} {{ order.last_name }}
+    </p>
+
+    <p>
+        وضعیت فعلی: {{ order.get_status_display }}
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit">ذخیره وضعیت</button>
+    </form>
+
+    <a href="{% url 'orders:order_detail' order_id=order.id %}">
+        بازگشت به جزئیات سفارش
+    </a>
+{% endblock %}
+```
