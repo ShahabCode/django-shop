@@ -1,5 +1,6 @@
+from django.utils import timezone
+import datetime
 from pydoc import describe
-
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
@@ -9,14 +10,13 @@ from account.models import ShopUser
 from .models import OrderItem, Order
 from cart.cart import Cart
 import random
-from django.contrib.auth import login
+from django.contrib.auth import authenticate, login, logout
 from cart.common.KaveSms import send_sms_with_template
 from django.conf import settings
 from django.shortcuts import redirect
 from django.http import HttpResponse
 import requests
 import json
-
 from .services import notify_order_status_change
 
 
@@ -33,10 +33,13 @@ def verify_phone(request):
                 return redirect('orders:verify_phone')
             else:
                 tokens = {'token': ''.join(random.choices('0123456789', k=6))}
+                token_expiry = timezone.now() + datetime.timedelta(minutes=1)
+                request.session['verification_expiry'] = token_expiry.isoformat()
                 request.session['verification_code'] = tokens['token']
+                request.session['verification_attempts'] = 0
                 request.session['phone'] = phone
                 print(tokens)
-                send_sms_with_template(phone, tokens, 'verify')
+                # send_sms_with_template(phone, tokens, 'verify')
                 messages.error(request, 'verification code sent successfully')
                 return redirect('orders:verify_code')
     else:
@@ -49,8 +52,29 @@ def verify_code(request):
     if request.method == 'POST':
         code = request.POST.get('code')
         if code:
-            verification_code = request.session['verification_code']
-            phone = request.session['phone']
+            verification_code = request.session.get('verification_code')
+            phone = request.session.get('phone')
+            expiry = request.session.get('verification_expiry')
+            attempts = request.session.get('verification_attempts', 0)
+
+            if not expiry or timezone.now() >= datetime.datetime.fromisoformat(expiry):
+                request.session.pop('verification_code', None)
+                request.session.pop('phone', None)
+                request.session.pop('verification_expiry', None)
+                request.session.pop('verification_attempts', None)
+
+                messages.error(request, 'verification code expired')
+                return redirect('orders:verify_phone')
+
+            if attempts >= 5:
+                request.session.pop('verification_attempts', None)
+                request.session.pop('phone', None)
+                request.session.pop('verification_expiry', None)
+                request.session.pop('verification_code', None)
+
+                messages.error(request, 'Too many attempts. Please request a new code.')
+                return redirect('orders:verify_phone')
+
             if code == verification_code:
                 user = ShopUser.objects.create_user(phone=phone)
                 user.set_password(phone)
@@ -60,11 +84,28 @@ def verify_code(request):
                 login(request, user)
                 del request.session['verification_code']
                 del request.session['phone']
+                del request.session['verification_expiry']
+                del request.session['verification_attempts']
                 return redirect('orders:order_create')
             else:
-                messages.error(request, 'invalid verification code')
+                attempts += 1
+                request.session['verification_attempts'] = attempts
+                remaining = 5 - attempts
+                messages.error(request, f'invalid verification code. remaining: {remaining}')
 
-    return render(request, 'verify_code.html')
+    expiry = request.session.get('verification_expiry')
+    remaining_seconds = 0
+
+    if expiry:
+        expiry_time = datetime.datetime.fromisoformat(expiry)
+        remaining_seconds = max(
+            0,
+            int((expiry_time - timezone.now()).total_seconds())
+        )
+
+    return render(request, 'verify_code.html', {
+        'remaining_seconds': remaining_seconds,
+    })
 
 
 @login_required
@@ -107,6 +148,9 @@ def send_request(request):
     description = ", ".join(
         item.product.name for item in order.items.all()
     )
+
+    if not description:
+        description = f"پرداخت سفارش شماره {order.id}"
 
     data = {
         "merchant_id": settings.MERCHANT,
