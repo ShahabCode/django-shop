@@ -1,16 +1,84 @@
-<h2>محصولات انتخاب شده شما</h2>
+<h2>محصولات انتخاب‌شده شما</h2>
+
 <ul>
     {% for item in cart %}
         <li>
-            {{ item.quantity }} X {{ item.product.name }}
-            {{ item.total }}
+            {{ item.quantity }} × {{ item.product.name }}
+            — {{ item.total }}
         </li>
     {% endfor %}
 </ul>
 
-<h2>اطلاعات سفارش را تکمیل کنید</h2>
+<h2>اطلاعات سفارش</h2>
+
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">تایید سفارش</button>
+
+    {{ form.non_field_errors }}
+
+    <p>
+        {{ form.first_name.label_tag }}
+        {{ form.first_name }}
+        {{ form.first_name.errors }}
+    </p>
+
+    <p>
+        {{ form.last_name.label_tag }}
+        {{ form.last_name }}
+        {{ form.last_name.errors }}
+    </p>
+
+    <p>
+        {{ form.phone.label_tag }}
+        {{ form.phone }}
+        {{ form.phone.errors }}
+    </p>
+
+    <hr>
+
+    <p>
+        {{ form.saved_address.label_tag }}
+        {{ form.saved_address }}
+        {{ form.saved_address.errors }}
+    </p>
+
+    <div id="new-address-fields">
+        <p>
+            {{ form.province.label_tag }}
+            {{ form.province }}
+            {{ form.province.errors }}
+        </p>
+
+        <p>
+            {{ form.city.label_tag }}
+            {{ form.city }}
+            {{ form.city.errors }}
+        </p>
+
+        <p>
+            {{ form.address.label_tag }}
+            {{ form.address }}
+            {{ form.address.errors }}
+        </p>
+
+        <p>
+            {{ form.postcode.label_tag }}
+            {{ form.postcode }}
+            {{ form.postcode.errors }}
+        </p>
+    </div>
+
+    <button type="submit">تأیید سفارش</button>
 </form>
+
+<script>
+    const addressSelect = document.getElementById('id_saved_address');
+    const addressFields = document.getElementById('new-address-fields');
+
+    function toggleAddressFields() {
+        addressFields.hidden = Boolean(addressSelect.value);
+    }
+
+    addressSelect.addEventListener('change', toggleAddressFields);
+    toggleAddressFields();
+</script>

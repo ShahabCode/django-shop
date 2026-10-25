@@ -108,24 +108,62 @@ def verify_code(request):
     })
 
 
+
 @login_required
 def order_create(request):
     cart = Cart(request)
+
     if request.method == 'POST':
-        form = OrderCreateForm(request.POST)
+        form = OrderCreateForm(request.POST, user=request.user)
+
         if form.is_valid():
-            order = form.save()
+            order = form.save(commit=False)
             order.buyer = request.user
             order.save()
+
             for item in cart:
-                OrderItem.objects.create(order=order, product=item["product"], quantity=item["quantity"],
-                                         price=item["price"], weight=item["weight"])
+                OrderItem.objects.create(
+                    order=order,
+                    product=item['product'],
+                    quantity=item['quantity'],
+                    price=item['price'],
+                    weight=item['weight'],
+                )
+
             cart.clear()
             request.session['order_id'] = order.id
+
             return redirect('orders:request')
+
     else:
-        form = OrderCreateForm()
-    return render(request, 'order_create.html', {'form': form, 'cart': cart})
+        initial_data = {
+            'first_name': request.user.first_name,
+            'last_name': request.user.last_name,
+            'phone': request.user.phone,
+        }
+
+        default_address = request.user.addresses.filter(
+            is_default=True
+        ).first()
+
+        if default_address:
+            initial_data['saved_address'] = default_address.pk
+            initial_data['address'] = default_address.address
+            initial_data['postcode'] = default_address.postal_code
+            initial_data['province'] = default_address.province
+            initial_data['city'] = default_address.city
+
+        form = OrderCreateForm(
+            initial=initial_data,
+            user=request.user,
+        )
+
+    return render(
+        request,
+        'order_create.html',
+        {'form': form, 'cart': cart},
+    )
+
 
 
 
