@@ -1,3 +1,5 @@
+from io import BytesIO
+
 from django.utils import timezone
 import datetime
 from pydoc import describe
@@ -18,6 +20,27 @@ from django.http import HttpResponse
 import requests
 import json
 from .services import notify_order_status_change
+import io
+from django.http import FileResponse
+from reportlab.pdfgen import canvas
+import arabic_reshaper
+from bidi.algorithm import get_display
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_RIGHT, TA_CENTER
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import mm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+)
+from django.conf import settings
+from pathlib import Path
 
 
 # Create your views here.
@@ -299,18 +322,19 @@ def verify(request):
     except ValueError:
         return HttpResponse("Invalid JSON response from Zarinpal")
 
+
 @login_required
 def orders_list(request):
     user = request.user
     orders = Order.objects.filter(buyer=user)
     return render(request, 'orders_list.html', {'orders': orders})
 
+
 @login_required
 def order_detail(request, order_id):
     user = request.user
     order = get_object_or_404(Order, id=order_id, buyer=user)
     return render(request, 'order_detail.html', {'order': order})
-
 
 
 @staff_member_required
@@ -331,3 +355,146 @@ def change_order_status(request, order_id):
         form = OrderStatusForm(instance=order)
 
     return render(request,'change_order_status.html',{'form': form, 'order': order})
+
+
+def fa(text):
+    """Prepare Persian text for rendering in ReportLab."""
+    return get_display(arabic_reshaper.reshape(str(text)))
+
+
+@login_required
+def order_factor(request, order_id):
+    order = get_object_or_404(
+        Order,
+        id=order_id,
+        buyer=request.user,
+    )
+
+    # Register Persian font
+    font_path = (
+        Path(settings.BASE_DIR)
+        / "static"
+        / "fonts"
+        / "Vazirmatn-Regular.ttf"
+    )
+
+    pdfmetrics.registerFont(TTFont("Vazirmatn", str(font_path)))
+
+    # Create PDF buffer
+    buffer = BytesIO()
+
+    document = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=20 * mm,
+        leftMargin=20 * mm,
+        topMargin=20 * mm,
+        bottomMargin=20 * mm,
+    )
+
+    # Text styles
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        "InvoiceTitle",
+        parent=styles["Title"],
+        fontName="Vazirmatn",
+        fontSize=20,
+        leading=30,
+        alignment=TA_CENTER,
+    )
+
+    normal_style = ParagraphStyle(
+        "PersianNormal",
+        parent=styles["Normal"],
+        fontName="Vazirmatn",
+        fontSize=10,
+        leading=18,
+        alignment=TA_RIGHT,
+        wordWrap="RTL",
+    )
+
+    story = []
+
+    # Invoice title
+    story.append(Paragraph(fa("فاکتور سفارش"), title_style))
+    story.append(Spacer(1, 8 * mm))
+
+    # Order information
+    order_info = [
+        f"شماره سفارش: {order.id}",
+        f"نام مشتری: {order.first_name} {order.last_name}",
+        f"شماره تماس: {order.phone}",
+        f"تاریخ ایجاد: {order.created_at}",
+        f"وضعیت سفارش: {order.get_status_display()}",
+        f"آدرس: {order.province}، {order.city}، {order.address}",
+        f"کد پستی: {order.postcode}",
+    ]
+
+    for info in order_info:
+        story.append(Paragraph(fa(info), normal_style))
+
+    story.append(Spacer(1, 8 * mm))
+
+    # Products table
+    table_data = [
+        [
+            Paragraph(fa("قیمت"), normal_style),
+            Paragraph(fa("تعداد"), normal_style),
+            Paragraph(fa("نام محصول"), normal_style),
+        ]
+    ]
+
+    total = 0
+
+    for item in order.items.select_related("product").all():
+        price = item.price
+        quantity = item.quantity
+        total += price * quantity
+
+        table_data.append([
+            Paragraph(fa(f"{price:,} تومان"), normal_style),
+            Paragraph(fa(quantity), normal_style),
+            Paragraph(fa(item.product.name), normal_style),
+        ])
+
+    products_table = Table(
+        table_data,
+        colWidths=[45 * mm, 25 * mm, 85 * mm],
+        repeatRows=1,
+    )
+
+    products_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#263238")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, -1), "Vazirmatn"),
+        ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#CFD8DC")),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.white),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+    ]))
+
+    story.append(products_table)
+    story.append(Spacer(1, 8 * mm))
+
+    # Total price
+    story.append(
+        Paragraph(
+            fa(f"مجموع مبلغ سفارش: {total:,} تومان"),
+            normal_style,
+        )
+    )
+
+    # Generate PDF
+    document.build(story)
+
+    buffer.seek(0)
+
+    return FileResponse(
+        buffer,
+        as_attachment=True,
+        filename=f"invoice-{order.id}.pdf",
+        content_type="application/pdf",
+    )

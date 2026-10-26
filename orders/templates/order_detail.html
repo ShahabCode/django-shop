@@ -13,3 +13,7 @@
 آدرس: {{ order.address }}
 <br />
 وضعیت سفارش: {{ order.get_status_display }}
+<br />
+<a href="{% url 'orders:order_factor' order.id %}">
+               دانلود فاکتور
+</a>
