@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from account.models import ShopUser
 from shop.models import Product
-from .serializers import ProductSerializer, ShopUserSerializer
+from .serializers import ProductSerializer, ShopUserSerializer, UserRegistrationSerializer
 from rest_framework import generics, permissions
 from rest_framework import views
 
@@ -24,3 +24,9 @@ class UserListAPIView(views.APIView):
         users = ShopUser.objects.all()
         serializer = ShopUserSerializer(users, many=True)
         return Response(serializer.data)
+
+
+class UserRegistrationAPIView(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+    queryset = ShopUser.objects.all()
+    serializer_class = UserRegistrationSerializer
