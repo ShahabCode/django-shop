@@ -4,15 +4,20 @@ from rest_framework.response import Response
 from account.models import ShopUser
 from shop.models import Product
 from .serializers import ProductSerializer, ShopUserSerializer, UserRegistrationSerializer
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, viewsets
 from rest_framework import views
 
-class ProductListAPIView(generics.ListAPIView):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
+# class ProductListAPIView(generics.ListAPIView):
+#     queryset = Product.objects.all()
+#     serializer_class = ProductSerializer
+#
+#
+# class ProductDetailAPIView(generics.RetrieveAPIView):
+#     queryset = Product.objects.all()
+#     serializer_class = ProductSerializer
 
 
-class ProductDetailAPIView(generics.RetrieveAPIView):
+class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
