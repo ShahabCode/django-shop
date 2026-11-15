@@ -1,27 +1,40 @@
-```html
-{% extends "parent/base.html" %}
+{% extends 'parent/base.html' %}
+{% load shop_extras %}
+
+{% block title %}تغییر وضعیت سفارش{% endblock %}
 
 {% block content %}
-    <h2>تغییر وضعیت سفارش شماره {{ order.id }}</h2>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
 
-    <p>
-        خریدار: {{ order.first_name }} {{ order.last_name }}
-    </p>
+                    <h1 class="h5 mb-3">تغییر وضعیت سفارش #{{ order.id|fa_num }}</h1>
 
-    <p>
-        وضعیت فعلی: {{ order.get_status_display }}
-    </p>
+                    <p class="mb-1"><span class="text-muted">خریدار:</span> {{ order.first_name }} {{ order.last_name }}</p>
+                    <p class="mb-4">
+                        <span class="text-muted">وضعیت فعلی:</span>
+                        {% include 'partials/order_status_badge.html' %}
+                    </p>
 
-    <form method="post">
-        {% csrf_token %}
+                    <form method="post">
+                        {% csrf_token %}
 
-        {{ form.as_p }}
+                        {% for error in form.non_field_errors %}
+                            <div class="alert alert-danger py-2">{{ error }}</div>
+                        {% endfor %}
 
-        <button type="submit">ذخیره وضعیت</button>
-    </form>
+                        {% include 'partials/form_field.html' with field=form.status %}
 
-    <a href="{% url 'orders:order_detail' order_id=order.id %}">
-        بازگشت به جزئیات سفارش
-    </a>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-grow-1">ذخیره وضعیت</button>
+                            <a href="{% url 'orders:order_detail' order_id=order.id %}" class="btn btn-outline-secondary">بازگشت</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
-```

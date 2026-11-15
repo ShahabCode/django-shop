@@ -1,24 +1,28 @@
 from django import forms
 
+from account.forms import BootstrapFormMixin
 from account.models import Address
 from .models import Order
 
-class PhoneVerificationForm(forms.Form):
+
+def validate_phone_number(phone):
+    if not phone.isdigit():
+        raise forms.ValidationError('شماره موبایل باید فقط شامل اعداد باشد.')
+
+    if len(phone) != 11 or not phone.startswith('09'):
+        raise forms.ValidationError('شماره موبایل باید ۱۱ رقم باشد و با 09 شروع شود.')
+
+    return phone
+
+
+class PhoneVerificationForm(BootstrapFormMixin, forms.Form):
     phone = forms.CharField(label='شماره موبایل', max_length=11)
 
     def clean_phone(self):
-        phone = self.cleaned_data['phone']
-
-        if not phone.isdigit():
-            raise forms.ValidationError('شماره موبایل باید فقط شامل اعداد باشد.')
-
-        if len(phone) != 11 or not phone.startswith('09'):
-            raise forms.ValidationError('شماره موبایل باید ۱۱ رقم باشد و با 09 شروع شود.')
-
-        return phone
+        return validate_phone_number(self.cleaned_data['phone'])
 
 
-class OrderCreateForm(forms.ModelForm):
+class OrderCreateForm(BootstrapFormMixin, forms.ModelForm):
     phone = forms.CharField(
         label='شماره موبایل',
         max_length=11,
@@ -42,6 +46,17 @@ class OrderCreateForm(forms.ModelForm):
             'province',
             'city',
         )
+        labels = {
+            'first_name': 'نام',
+            'last_name': 'نام خانوادگی',
+            'address': 'نشانی کامل',
+            'postcode': 'کد پستی',
+            'province': 'استان',
+            'city': 'شهر',
+        }
+        widgets = {
+            'address': forms.Textarea(attrs={'rows': 3}),
+        }
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -57,19 +72,7 @@ class OrderCreateForm(forms.ModelForm):
             self.fields[field_name].required = False
 
     def clean_phone(self):
-        phone = self.cleaned_data['phone']
-
-        if not phone.isdigit():
-            raise forms.ValidationError(
-                'شماره موبایل باید فقط شامل اعداد باشد.'
-            )
-
-        if len(phone) != 11 or not phone.startswith('09'):
-            raise forms.ValidationError(
-                'شماره موبایل باید ۱۱ رقم باشد و با 09 شروع شود.'
-            )
-
-        return phone
+        return validate_phone_number(self.cleaned_data['phone'])
 
     def clean(self):
         cleaned_data = super().clean()
@@ -98,7 +101,8 @@ class OrderCreateForm(forms.ModelForm):
         return cleaned_data
 
 
-class OrderStatusForm(forms.ModelForm):
+class OrderStatusForm(BootstrapFormMixin, forms.ModelForm):
     class Meta:
         model = Order
         fields = ('status',)
+        labels = {'status': 'وضعیت سفارش'}
