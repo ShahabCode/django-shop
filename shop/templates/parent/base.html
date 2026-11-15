@@ -1,16 +1,43 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>shop | {% block title %}{% endblock %}</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}">
-    {% block head %} {% endblock %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}{% endblock %} | فروشگاه</title>
+
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.rtl.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=3">
+    {% block head %}{% endblock %}
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100" data-cart-count="{{ cart|length }}">
+
     {% include 'partials/header.html' %}
     {% include 'partials/navigation.html' %}
-    {% block content %} {% endblock %}
+
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="بستن"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <main class="flex-grow-1 py-4">
+        {% block content %}{% endblock %}
+    </main>
+
     {% include 'partials/footer.html' %}
+
+    <div class="toast-container position-fixed bottom-0 start-0 p-3" id="toast-box"></div>
+
+    <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/shop.js' %}?v=3"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

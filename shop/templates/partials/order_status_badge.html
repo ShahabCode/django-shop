@@ -1,0 +1,9 @@
+{# استفاده: {% include 'partials/order_status_badge.html' with order=order %} #}
+<span class="badge rounded-pill
+    {% if order.status == 'pending' %}text-bg-warning
+    {% elif order.status == 'confirmed' %}text-bg-success
+    {% elif order.status == 'processing' %}text-bg-info
+    {% elif order.status == 'cancelled' %}text-bg-danger
+    {% else %}text-bg-secondary{% endif %}">
+    {{ order.get_status_display }}
+</span>
