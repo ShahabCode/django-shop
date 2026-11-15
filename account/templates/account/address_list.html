@@ -1,59 +1,78 @@
-
 {% extends 'parent/base.html' %}
 
 {% block title %}آدرس‌های من{% endblock %}
 
 {% block content %}
-    <div class="header">
-        <h1>آدرس‌های من</h1>
-    </div>
+<div class="container">
 
-    <div class="address-page">
+    <h1 class="h4 mb-4"><i class="bi bi-geo-alt me-2"></i>آدرس‌های من</h1>
 
-        <div class="address-form-container">
-            <h2>افزودن آدرس جدید</h2>
+    <div class="row g-4">
 
-            <form method="post">
-                {% csrf_token %}
-                {{ form.as_p }}
+        {# ---------- فرم افزودن آدرس ---------- #}
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="h6 mb-3">افزودن آدرس جدید</h2>
 
-                <button type="submit" class="address-submit-btn">
-                    افزودن آدرس
-                </button>
-            </form>
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% for error in form.non_field_errors %}
+                            <div class="alert alert-danger py-2">{{ error }}</div>
+                        {% endfor %}
+
+                        <div class="row">
+                            <div class="col-md-6">{% include 'partials/form_field.html' with field=form.title %}</div>
+                            <div class="col-md-6">{% include 'partials/form_field.html' with field=form.postal_code %}</div>
+                            <div class="col-md-6">{% include 'partials/form_field.html' with field=form.province %}</div>
+                            <div class="col-md-6">{% include 'partials/form_field.html' with field=form.city %}</div>
+                        </div>
+
+                        {% include 'partials/form_field.html' with field=form.address %}
+                        {% include 'partials/form_field.html' with field=form.is_default %}
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-lg me-1"></i>افزودن آدرس
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
 
-        <div class="address-list-container">
-            <h2>آدرس‌های پیش‌فرض</h2>
+        {# ---------- لیست آدرس‌ها ---------- #}
+        <div class="col-lg-7">
+            {% for address in addresses|dictsortreversed:"is_default" %}
+                <div class="card address-card border-0 shadow-sm mb-3 {% if address.is_default %}default-address{% else %}address-selectable{% endif %}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h3 class="h6 mb-0"><i class="bi bi-geo-alt-fill text-primary me-1"></i>{{ address.title }}</h3>
+                            {% if address.is_default %}
+                                <span class="badge rounded-pill text-bg-primary">آدرس پیش‌فرض</span>
+                            {% endif %}
+                        </div>
+                        <p class="mb-1 text-muted small">{{ address.province }}، {{ address.city }}</p>
+                        <p class="mb-2">{{ address.address }}</p>
+                        <div class="small text-muted">کد پستی: <span dir="ltr">{{ address.postal_code }}</span></div>
 
-            {% for address in addresses %}
-                {% if address.is_default %}
-                    <div class="address-card default-address">
-                        <h3>{{ address.title }}</h3>
-                        <p>{{ address.province }}، {{ address.city }}</p>
-                        <p>{{ address.address }}</p>
-                        <span class="default-badge">آدرس پیش‌فرض</span>
+                        {% if not address.is_default %}
+                            {# stretched-link باعث می‌شه با کلیک روی هر جای کارت، فرم ارسال بشه #}
+                            <form method="post" action="{% url 'account:set_default_address' address.id %}" class="mt-3">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-primary btn-sm stretched-link">
+                                    انتخاب به‌عنوان آدرس پیش‌فرض
+                                </button>
+                            </form>
+                        {% endif %}
                     </div>
-                {% endif %}
+                </div>
             {% empty %}
-                <p>هنوز آدرسی ثبت نکرده‌اید.</p>
-            {% endfor %}
-
-            <h2>آدرس‌های دیگر</h2>
-
-            {% for address in addresses %}
-                {% if not address.is_default %}
-                    <div class="address-card">
-                        <h3>{{ address.title }}</h3>
-                        <p>{{ address.province }}، {{ address.city }}</p>
-                        <p>{{ address.address }}</p>
-                        <p>کد پستی: {{ address.postal_code }}</p>
-                    </div>
-                {% endif %}
-            {% empty %}
-                <p>هنوز آدرسی ثبت نکرده‌اید.</p>
+                <div class="text-center py-5 bg-white rounded-3 shadow-sm">
+                    <i class="bi bi-geo-alt display-4 text-muted"></i>
+                    <p class="mt-3 mb-0 text-muted">هنوز آدرسی ثبت نکرده‌اید.</p>
+                </div>
             {% endfor %}
         </div>
-
     </div>
+</div>
 {% endblock %}

@@ -1,96 +1,160 @@
 {% extends 'parent/base.html' %}
-{% load static %}
-{% block title %}Product Detail{% endblock %}
+{% load shop_extras %}
+
+{% block title %}{{ product.name }}{% endblock %}
 
 {% block content %}
+<div class="container">
 
-    <div class="header">
-        <h1>جزئیات محصول</h1>
-    </div>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{% url 'shop:products' %}">فروشگاه</a></li>
+            <li class="breadcrumb-item"><a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
 
-    <div class="product-container">
+    <div class="row g-4">
 
-        <div class="product-detail">
-            <h2>{{ product.name }}</h2>
-            <p> دسته بندی: {{ product.category }}</p>
-            <p> موجودی: {{ product.inventory }}</p>
-            <ul>
-                {% for f in product.features.all %}
-                    <li>{{ f.name }}: {{ f.value }}</li>
-                {% endfor %}
-            </ul>
-            <div class="price">
-                <span class="original-price"> قیمت: {{ product.price}}</span>
-                <br>
-                <span class="discounted-price-d"> قیمت پس از تخفیف: {{ product.new_price}}</span>
-            </div>
-            <br>
-            <button type="button" id="add-cart">Add to Cart</button>
-        </div>
-
-        <div class="product-images">
-            {% for img in product.images.all %}
-                <img src="{{ img.file.url }}">
-            {% endfor %}
-        </div>
-
-        <div class="product-description">
-            <h3>توضیحات محصول</h3>
-            <p>{{ product.description }}</p>
-        </div>
-    </div>
-
-    {% if related_products %}
-    <div class="related-products">
-        <h2>محصولات مرتبط</h2>
-
-        <div class="related-products-grid">
-            {% for related in related_products %}
-                <div class="product">
-                    <a href="{{ related.get_absolute_url }}">
-                        {% if related.images.first %}
-                            <img
-                                class="pic"
-                                src="{{ related.images.first.file.url }}"
-                                alt="{{ related.name }}"
-                            >
+        {# ---------- گالری ---------- #}
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-sm p-3">
+                {% with first=product.images.first %}
+                    <div class="ratio ratio-1x1 bg-light rounded-3 overflow-hidden mb-3">
+                        {% if first and first.file %}
+                            <img id="main-image" src="{{ first.file.url }}" alt="{{ product.name }}" class="object-fit-contain">
+                        {% else %}
+                            <div class="thumb-placeholder"><i class="bi bi-image display-1"></i></div>
                         {% endif %}
+                    </div>
+                {% endwith %}
 
-                        <h3>{{ related.name }}</h3>
-                    </a>
+                {% if product.images.all|length > 1 %}
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for img in product.images.all %}
+                            {% if img.file %}
+                                <button type="button" class="thumb-btn {% if forloop.first %}active{% endif %}"
+                                        data-gallery-thumb data-src="{{ img.file.url }}"
+                                        aria-label="نمایش تصویر {{ forloop.counter|fa_num }}">
+                                    <img src="{{ img.file.url }}" alt="" loading="lazy">
+                                </button>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
 
-                    <div class="price">
-                        <span class="original-price">
-                            {{ related.price }}
-                        </span>
-                        <br>
-                        <span class="discounted-price">
-                            {{ related.new_price }}
-                        </span>
+        {# ---------- اطلاعات خرید ---------- #}
+        <div class="col-md-6 col-lg-7">
+            <div class="card border-0 shadow-sm p-4 h-100">
+
+                <a href="{{ product.category.get_absolute_url }}"
+                   class="badge rounded-pill text-bg-light border text-decoration-none align-self-start mb-2">
+                    {{ product.category.name }}
+                </a>
+
+                <h1 class="h3 mb-3">{{ product.name }}</h1>
+
+                <div class="mb-3">
+                    {% if product.inventory > 0 %}
+                        <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>موجود در انبار</span>
+                        {% if product.inventory <= 5 %}
+                            <span class="text-danger small ms-2">تنها {{ product.inventory|fa_num }} عدد باقی مانده</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-danger"><i class="bi bi-x-circle-fill me-1"></i>ناموجود</span>
+                    {% endif %}
+                </div>
+
+                {% if product.features.all %}
+                    <ul class="list-unstyled small text-muted mb-4">
+                        {% for f in product.features.all|slice:":4" %}
+                            <li class="mb-1"><i class="bi bi-dot"></i>{{ f.name }}: <span class="text-body">{{ f.value }}</span></li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                <div class="price-box p-3 mt-auto mb-3">
+                    {% if product.off %}
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="old-price">{{ product.price|fa_num }}</span>
+                            {% if product.discount_percent %}
+                                <span class="badge rounded-pill" style="background: var(--shop-accent);">
+                                    {{ product.discount_percent|fa_num }}٪ تخفیف
+                                </span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    <div class="fs-3 fw-bold text-primary">
+                        {{ product.new_price|fa_num }}
+                        <span class="fs-6 fw-normal text-muted">تومان</span>
                     </div>
                 </div>
-            {% endfor %}
+
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-primary btn-lg flex-grow-1"
+                            data-add-to-cart data-url="{% url 'cart:add_to_cart' product.id %}"
+                            {% if product.inventory == 0 %}disabled{% endif %}>
+                        <i class="bi bi-cart-plus me-1"></i>افزودن به سبد خرید
+                    </button>
+                    <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-primary btn-lg">
+                        مشاهده سبد
+                    </a>
+                </div>
+            </div>
         </div>
-     </div>
+    </div>
+
+    {# ---------- توضیحات و مشخصات ---------- #}
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white">
+            <ul class="nav nav-tabs card-header-tabs" id="product-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc-pane"
+                            type="button" role="tab" aria-controls="desc-pane" aria-selected="true">توضیحات</button>
+                </li>
+                {% if product.features.all %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="features-tab" data-bs-toggle="tab" data-bs-target="#features-pane"
+                                type="button" role="tab" aria-controls="features-pane" aria-selected="false">مشخصات</button>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="card-body tab-content p-4">
+            <div class="tab-pane fade show active" id="desc-pane" role="tabpanel" aria-labelledby="desc-tab" tabindex="0">
+                {{ product.description|linebreaks }}
+            </div>
+
+            {% if product.features.all %}
+                <div class="tab-pane fade" id="features-pane" role="tabpanel" aria-labelledby="features-tab" tabindex="0">
+                    <table class="table table-striped mb-0">
+                        <tbody>
+                            {% for f in product.features.all %}
+                                <tr>
+                                    <th scope="row" class="w-25 fw-normal text-muted">{{ f.name }}</th>
+                                    <td>{{ f.value }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ---------- محصولات مرتبط ---------- #}
+    {% if related_products %}
+        <section class="mt-5">
+            <h2 class="h4 mb-3">محصولات مرتبط</h2>
+            <div class="row row-cols-2 row-cols-md-4 g-3">
+                {% for related in related_products %}
+                    {% include 'shop/_product_card.html' with product=related %}
+                {% endfor %}
+            </div>
+        </section>
     {% endif %}
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/4.0.0/jquery.min.js" integrity="sha512-8LENNbXmzI/Gbj+OwXmqR6V4QaUAw0/porPzy1+dQoJqC0JPHedWoe0DDOTL2uHA5XXJyIsPtiMHH86pVlay6A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script>
-        $(document).ready(function (){
-            $('#add-cart').click(function (){
-                var button = $(this);
-                $.ajax({
-                    type: 'POST',
-                    url: '{% url 'cart:add_to_cart' product.id %}',
-                    data: {'csrfmiddlewaretoken':'{{ csrf_token }}'},
-                    success: function (data){
-                        $('#item_count').text(data.item_count);
-                        $('#total_price').text(data.total_price)
-                    }
-
-                })
-            })
-        })
-    </script>
-
+</div>
 {% endblock %}

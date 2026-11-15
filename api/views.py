@@ -2,11 +2,14 @@ from rest_framework.authentication import TokenAuthentication, BasicAuthenticati
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from account.models import ShopUser
+from orders.models import Order
 from shop.models import Product
-from .serializers import ProductSerializer, ShopUserSerializer, UserRegistrationSerializer
+from .serializers import *
 from rest_framework import generics, permissions, viewsets, status
 from rest_framework import views
 from rest_framework.decorators import action
+from .permissions import IsAdminTehran, IsBuyer
+
 
 # class ProductListAPIView(generics.ListAPIView):
 #     queryset = Product.objects.all()
@@ -47,3 +50,15 @@ class UserRegistrationAPIView(generics.CreateAPIView):
     permission_classes = [AllowAny]
     queryset = ShopUser.objects.all()
     serializer_class = UserRegistrationSerializer
+
+
+class OrderListAPIView(generics.ListAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [IsAdminTehran]
+
+
+class OrderDetailAPIView(generics.RetrieveAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [IsBuyer]

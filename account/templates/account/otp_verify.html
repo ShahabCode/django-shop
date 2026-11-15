@@ -1,0 +1,74 @@
+{% extends 'parent/base.html' %}
+
+{% block title %}کد تأیید{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-5 col-xl-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-md-5">
+
+                    <div class="text-center mb-4">
+                        <i class="bi bi-shield-lock display-4 text-primary"></i>
+                        <h1 class="h4 mt-2">کد تأیید را وارد کنید</h1>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <input type="text" name="code" class="form-control form-control-lg code-input"
+                                   maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+                                   dir="ltr" placeholder="------" required autofocus
+                                   aria-label="کد تأیید">
+                        </div>
+
+                        <div class="text-center mb-3">
+                            <span class="text-muted small">زمان باقی‌مانده:</span>
+                            <strong id="timer" dir="ltr" data-remaining="{{ remaining_seconds|default:0 }}">--:--</strong>
+                        </div>
+
+                        <button type="submit" id="code-submit" class="btn btn-primary w-100 btn-lg">ورود</button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <a href="{% url 'account:otp_request' %}" id="resend" class="btn btn-link btn-sm d-none">
+                            ارسال مجدد کد
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        const timer = document.getElementById('timer');
+        const submit = document.getElementById('code-submit');
+        const resend = document.getElementById('resend');
+        let remaining = Number(timer.dataset.remaining) || 0;
+
+        const two = (n) => n.toLocaleString('fa-IR', {minimumIntegerDigits: 2, useGrouping: false});
+
+        function tick() {
+            if (remaining <= 0) {
+                timer.textContent = 'کد منقضی شده است';
+                timer.classList.add('text-danger');
+                submit.disabled = true;
+                resend.classList.remove('d-none');
+                return;
+            }
+
+            timer.textContent = two(Math.floor(remaining / 60)) + ':' + two(remaining % 60);
+            remaining--;
+            setTimeout(tick, 1000);
+        }
+
+        tick();
+    })();
+</script>
+{% endblock %}

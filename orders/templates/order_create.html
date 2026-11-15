@@ -1,84 +1,120 @@
-<h2>محصولات انتخاب‌شده شما</h2>
+{% extends 'parent/base.html' %}
+{% load shop_extras %}
 
-<ul>
-    {% for item in cart %}
-        <li>
-            {{ item.quantity }} × {{ item.product.name }}
-            — {{ item.total }}
-        </li>
-    {% endfor %}
-</ul>
+{% block title %}ثبت سفارش{% endblock %}
 
-<h2>اطلاعات سفارش</h2>
+{% block content %}
+<div class="container">
 
-<form method="post">
-    {% csrf_token %}
-
-    {{ form.non_field_errors }}
-
-    <p>
-        {{ form.first_name.label_tag }}
-        {{ form.first_name }}
-        {{ form.first_name.errors }}
-    </p>
-
-    <p>
-        {{ form.last_name.label_tag }}
-        {{ form.last_name }}
-        {{ form.last_name.errors }}
-    </p>
-
-    <p>
-        {{ form.phone.label_tag }}
-        {{ form.phone }}
-        {{ form.phone.errors }}
-    </p>
-
-    <hr>
-
-    <p>
-        {{ form.saved_address.label_tag }}
-        {{ form.saved_address }}
-        {{ form.saved_address.errors }}
-    </p>
-
-    <div id="new-address-fields">
-        <p>
-            {{ form.province.label_tag }}
-            {{ form.province }}
-            {{ form.province.errors }}
-        </p>
-
-        <p>
-            {{ form.city.label_tag }}
-            {{ form.city }}
-            {{ form.city.errors }}
-        </p>
-
-        <p>
-            {{ form.address.label_tag }}
-            {{ form.address }}
-            {{ form.address.errors }}
-        </p>
-
-        <p>
-            {{ form.postcode.label_tag }}
-            {{ form.postcode }}
-            {{ form.postcode.errors }}
-        </p>
+    <div class="order-steps mb-3">
+        <span class="step">۱. شماره موبایل</span>
+        <span class="step">۲. کد تأیید</span>
+        <span class="step active">۳. ثبت سفارش</span>
     </div>
 
-    <button type="submit">تأیید سفارش</button>
-</form>
+    <h1 class="h4 mb-4"><i class="bi bi-bag-check me-2"></i>ثبت سفارش</h1>
 
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="row g-4">
+
+            {# ---------- اطلاعات گیرنده و آدرس ---------- #}
+            <div class="col-lg-7">
+
+                {% for error in form.non_field_errors %}
+                    <div class="alert alert-danger py-2">{{ error }}</div>
+                {% endfor %}
+
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body p-4">
+                        <h2 class="h6 mb-3">اطلاعات گیرنده</h2>
+                        <div class="row">
+                            <div class="col-md-6">{% include 'partials/form_field.html' with field=form.first_name %}</div>
+                            <div class="col-md-6">{% include 'partials/form_field.html' with field=form.last_name %}</div>
+                            <div class="col-12">{% include 'partials/form_field.html' with field=form.phone %}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h2 class="h6 mb-0">آدرس تحویل</h2>
+                            <a href="{% url 'account:address_list' %}" class="small">مدیریت آدرس‌ها</a>
+                        </div>
+
+                        {% if form.saved_address.field.queryset %}
+                            {% include 'partials/form_field.html' with field=form.saved_address %}
+                        {% endif %}
+
+                        <div id="new-address-fields">
+                            <div class="row">
+                                <div class="col-md-6">{% include 'partials/form_field.html' with field=form.province %}</div>
+                                <div class="col-md-6">{% include 'partials/form_field.html' with field=form.city %}</div>
+                            </div>
+                            {% include 'partials/form_field.html' with field=form.address %}
+                            {% include 'partials/form_field.html' with field=form.postcode %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# ---------- خلاصه سفارش ---------- #}
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm summary-card">
+                    <div class="card-body p-4">
+                        <h2 class="h6 mb-3">خلاصه سفارش</h2>
+
+                        <ul class="list-unstyled mb-3">
+                            {% for item in cart %}
+                                <li class="d-flex justify-content-between gap-2 mb-2">
+                                    <span>{{ item.product.name }} <span class="text-muted">× {{ item.quantity|fa_num }}</span></span>
+                                    <span class="text-nowrap">{{ item.total|fa_num }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">قیمت کالاها</span>
+                            <span>{{ cart.get_total_price|fa_num }} تومان</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">هزینه ارسال</span>
+                            <span>{{ cart.get_post_price|fa_num }} تومان</span>
+                        </div>
+                        <div class="d-flex justify-content-between fw-bold fs-5 mb-4">
+                            <span>مبلغ قابل پرداخت</span>
+                            <span class="text-primary">{{ cart.get_final_price|fa_num }} تومان</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            تأیید سفارش و پرداخت
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
 <script>
-    const addressSelect = document.getElementById('id_saved_address');
-    const addressFields = document.getElementById('new-address-fields');
+    (function () {
+        const addressSelect = document.getElementById('id_saved_address');
+        const addressFields = document.getElementById('new-address-fields');
 
-    function toggleAddressFields() {
-        addressFields.hidden = Boolean(addressSelect.value);
-    }
+        if (!addressSelect) return;
 
-    addressSelect.addEventListener('change', toggleAddressFields);
-    toggleAddressFields();
+        function toggleAddressFields() {
+            addressFields.hidden = Boolean(addressSelect.value);
+        }
+
+        addressSelect.addEventListener('change', toggleAddressFields);
+        toggleAddressFields();
+    })();
 </script>
+{% endblock %}

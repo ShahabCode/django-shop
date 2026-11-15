@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'account.apps.AccountConfig',
     'api.apps.ApiConfig',
     'rest_framework',
+    'django_extensions'
 ]
 
 MIDDLEWARE = [
@@ -70,6 +71,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'cart.context_processors.cart',
+                'shop.context_processors.nav_categories',
             ],
         },
     },
@@ -160,3 +162,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
 }
+
+LANGUAGE_CODE = 'fa'
+TIME_ZONE = 'Asia/Tehran'
+
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
+LOGIN_URL = 'account:login'
+

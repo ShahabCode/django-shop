@@ -1,0 +1,66 @@
+<footer class="mt-auto">
+
+    <section class="feature-strip border-top bg-white py-4">
+        <div class="container">
+            <div class="row row-cols-2 row-cols-lg-4 g-3 text-center">
+                <div class="col">
+                    <i class="bi bi-truck fs-2 text-primary"></i>
+                    <div class="fw-bold mt-1">ارسال سریع</div>
+                    <div class="small text-muted">ارسال به سراسر کشور</div>
+                </div>
+                <div class="col">
+                    <i class="bi bi-shield-check fs-2 text-primary"></i>
+                    <div class="fw-bold mt-1">پرداخت امن</div>
+                    <div class="small text-muted">پرداخت آنلاین از درگاه بانکی</div>
+                </div>
+                <div class="col">
+                    <i class="bi bi-patch-check fs-2 text-primary"></i>
+                    <div class="fw-bold mt-1">ضمانت اصالت</div>
+                    <div class="small text-muted">کالای اصل و سالم</div>
+                </div>
+                <div class="col">
+                    <i class="bi bi-headset fs-2 text-primary"></i>
+                    <div class="fw-bold mt-1">پشتیبانی</div>
+                    <div class="small text-muted">پاسخگویی در ساعات کاری</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="site-footer py-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <h2 class="h5 text-white"><i class="bi bi-bag-heart-fill me-1"></i>فروشگاه</h2>
+                    <p class="mb-0">
+                        خرید آنلاین با قیمت مناسب، ارسال سریع و پشتیبانی واقعی.
+                        محصولات مورد نیازتان را انتخاب کنید و تا درِ خانه تحویل بگیرید.
+                    </p>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <h3 class="h6 text-white mb-3">دسترسی سریع</h3>
+                    <ul class="list-unstyled mb-0 d-grid gap-2">
+                        <li><a href="{% url 'shop:products' %}">همه محصولات</a></li>
+                        <li><a href="{% url 'cart:cart_detail' %}">سبد خرید</a></li>
+                        <li><a href="{% url 'orders:orders_list' %}">پیگیری سفارش</a></li>
+                        <li><a href="{% url 'account:address_list' %}">آدرس‌های من</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-6 col-lg-4">
+                    <h3 class="h6 text-white mb-3">تماس با ما</h3>
+                    <ul class="list-unstyled mb-0 d-grid gap-2">
+                        <li><i class="bi bi-geo-alt me-1"></i>تهران، خیابان نمونه، پلاک ۰</li>
+                        <li><i class="bi bi-telephone me-1"></i><span dir="ltr">021-0000 0000</span></li>
+                        <li><i class="bi bi-envelope me-1"></i><span dir="ltr">info@example.com</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="copyright py-3 text-center small">
+        © {% now "Y" %} فروشگاه. تمامی حقوق محفوظ است.
+    </div>
+</footer>

@@ -1,12 +1,6 @@
-<div class="cart-container">
-    {% with item_count=cart|length %}
-    <a href="{% url 'cart:cart_detail' %}" class="cart-link">
-        <div class="cart-info-container">
-            <span class="cart-icon">🛒</span>
-            <span class="cart-info">
-                <span id="item_count" class="item-count">{{ item_count }}</span> items, <span id="total_price" class="total-price">{{ cart.get_total_price }}</span>
-            </span>
-        </div>
-    </a>
-    {% endwith %}
+<div class="topbar d-none d-md-block py-1 small">
+    <div class="container d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-truck me-1"></i>ارسال به سراسر کشور</span>
+        <span><i class="bi bi-telephone me-1"></i>پشتیبانی: <span dir="ltr">021-0000 0000</span></span>
+    </div>
 </div>

@@ -1,197 +1,55 @@
+{% extends 'parent/base.html' %}
 
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>وضعیت پرداخت</title>
+{% block title %}{% if success %}پرداخت موفق{% else %}پرداخت ناموفق{% endif %}{% endblock %}
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-md-5 text-center">
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            background: #f3f4f6;
-            font-family: Tahoma, Arial, sans-serif;
-            color: #1f2937;
-        }
+                    {% if success %}
 
-        .payment-card {
-            width: 100%;
-            max-width: 430px;
-            padding: 35px 25px;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-            text-align: center;
-        }
+                        <div class="payment-icon success"><i class="bi bi-check-lg"></i></div>
+                        <h1 class="h4 text-success mb-3">پرداخت موفق</h1>
+                        <p class="text-muted mb-4">سفارش شما با موفقیت پرداخت شد. از خرید شما سپاسگزاریم.</p>
 
-        .status-icon {
-            width: 76px;
-            height: 76px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            border-radius: 50%;
-            font-size: 38px;
-            font-weight: bold;
-        }
+                        <div class="bg-light rounded-3 p-3 text-start mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">شماره سفارش</span>
+                                <strong>{{ order_id }}</strong>
+                            </div>
+                            {% if RefID %}
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">شماره پیگیری</span>
+                                    <strong dir="ltr">{{ RefID }}</strong>
+                                </div>
+                            {% endif %}
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">وضعیت</span>
+                                <strong class="text-success">پرداخت‌شده</strong>
+                            </div>
+                        </div>
 
-        .success .status-icon {
-            background: #dcfce7;
-            color: #16a34a;
-        }
+                        <a href="{% url 'orders:order_detail' order_id %}" class="btn btn-primary w-100 mb-2">مشاهده سفارش</a>
+                        <a href="{% url 'shop:products' %}" class="btn btn-outline-secondary w-100">بازگشت به فروشگاه</a>
 
-        .failed .status-icon {
-            background: #fee2e2;
-            color: #dc2626;
-        }
+                    {% else %}
 
-        h1 {
-            margin: 0 0 15px;
-            font-size: 23px;
-        }
+                        <div class="payment-icon failed"><i class="bi bi-x-lg"></i></div>
+                        <h1 class="h4 text-danger mb-3">پرداخت ناموفق</h1>
+                        <p class="text-muted mb-4">
+                            پرداخت سفارش شما تأیید نشد. ممکن است پرداخت لغو شده باشد یا تراکنش با خطا مواجه شده باشد.
+                        </p>
 
-        .success h1 {
-            color: #16a34a;
-        }
+                        <a href="{% url 'orders:orders_list' %}" class="btn btn-primary w-100 mb-2">سفارش‌های من</a>
+                        <a href="{% url 'shop:products' %}" class="btn btn-outline-secondary w-100">بازگشت به فروشگاه</a>
 
-        .failed h1 {
-            color: #dc2626;
-        }
-
-        .message {
-            margin-bottom: 25px;
-            color: #6b7280;
-            font-size: 14px;
-            line-height: 2;
-        }
-
-        .details {
-            margin-bottom: 25px;
-            padding: 15px;
-            background: #f9fafb;
-            border-radius: 10px;
-            text-align: right;
-            font-size: 14px;
-        }
-
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .detail-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .detail-label {
-            color: #6b7280;
-        }
-
-        .detail-value {
-            font-weight: bold;
-            overflow-wrap: anywhere;
-        }
-
-        .button {
-            display: block;
-            width: 100%;
-            padding: 13px;
-            border-radius: 9px;
-            background: #2563eb;
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-
-        .button:hover {
-            background: #1d4ed8;
-        }
-
-        .failed .button {
-            background: #4b5563;
-        }
-
-        .failed .button:hover {
-            background: #374151;
-        }
-
-        @media (max-width: 400px) {
-            .payment-card {
-                padding: 28px 18px;
-            }
-
-            h1 {
-                font-size: 20px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <main class="payment-card {% if success %}success{% else %}failed{% endif %}">
-
-        {% if success %}
-
-            <div class="status-icon">✓</div>
-
-            <h1>پرداخت موفق</h1>
-
-            <p class="message">
-                سفارش شما با موفقیت پرداخت شد.
-                از خرید شما سپاسگزاریم.
-            </p>
-
-            <div class="details">
-
-                <div class="detail-row">
-                    <span class="detail-label">شماره سفارش</span>
-                    <span class="detail-value">{{ order_id }}</span>
+                    {% endif %}
                 </div>
-
-                {% if RefID %}
-                    <div class="detail-row">
-                        <span class="detail-label">شماره پیگیری</span>
-                        <span class="detail-value">{{ RefID }}</span>
-                    </div>
-                {% endif %}
-
-                <div class="detail-row">
-                    <span class="detail-label">وضعیت</span>
-                    <span class="detail-value">پرداخت‌شده</span>
-                </div>
-
             </div>
-
-        {% else %}
-
-            <div class="status-icon">×</div>
-
-            <h1>پرداخت ناموفق</h1>
-
-            <p class="message">
-                پرداخت سفارش شما تأیید نشد.
-                ممکن است پرداخت لغو شده باشد یا تراکنش با خطا مواجه شده باشد.
-            </p>
-
-        {% endif %}
-
-        <a href="/" class="button">بازگشت به صفحه اصلی</a>
-
-    </main>
-
-</body>
-</html>
+        </div>
+    </div>
+</div>
+{% endblock %}

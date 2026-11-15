@@ -1,0 +1,32 @@
+{% extends 'parent/base.html' %}
+
+{% block title %}صفحه پیدا نشد{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body p-4 p-md-5">
+
+                    <div class="text-primary fw-bold" style="font-size: 6rem; line-height: 1;">۴۰۴</div>
+
+                    <h1 class="h4 mt-3 mb-3">صفحه‌ای که دنبالش بودی پیدا نشد</h1>
+                    <p class="text-muted mb-4">
+                        ممکنه آدرس رو اشتباه وارد کرده باشی یا این صفحه حذف شده باشه.
+                    </p>
+
+                    <div class="d-flex flex-wrap gap-2 justify-content-center">
+                        <a href="{% url 'shop:products' %}" class="btn btn-primary">
+                            <i class="bi bi-shop me-1"></i>مشاهده محصولات
+                        </a>
+                        <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-cart3 me-1"></i>سبد خرید
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
