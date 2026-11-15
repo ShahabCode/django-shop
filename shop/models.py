@@ -1,5 +1,7 @@
 from django.db import models
 from django.urls import reverse
+from rest_framework.exceptions import ValidationError
+
 
 # Create your models here.
 class Category(models.Model):
@@ -46,6 +48,16 @@ class Product(models.Model):
 
     def get_absolute_url(self):
         return reverse('shop:product_detail', args=[self.id, self.slug])
+
+    @property
+    def discount_percent(self):
+        if self.price and self.off:
+            return round(self.off * 100 / self.price)
+        return 0
+
+    def clean(self):
+        if self.price < self.off:
+            raise ValidationError('تخفیف از قیمت خود محصول بالاتر است.')
 
     def __str__(self):
         return self.name
