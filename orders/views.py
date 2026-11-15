@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .forms import PhoneVerificationForm, OrderCreateForm, OrderStatusForm
 from account.models import ShopUser
-from .models import OrderItem, Order
+from .models import OrderItem, Order, Transaction
 from cart.cart import Cart
 import random
 from django.contrib.auth import authenticate, login, logout
@@ -41,6 +41,7 @@ from reportlab.platypus import (
 )
 from django.conf import settings
 from pathlib import Path
+from django.db import transaction
 
 
 # Create your views here.
@@ -52,7 +53,7 @@ def verify_phone(request):
         if form.is_valid():
             phone = form.cleaned_data['phone']
             if ShopUser.objects.filter(phone=phone).exists():
-                messages.error(request, 'this phone already registered')
+                messages.error(request, 'این شماره تلفن قبلاً ثبت‌نام کرده است.')
                 return redirect('orders:verify_phone')
             else:
                 tokens = {'token': ''.join(random.choices('0123456789', k=6))}
@@ -63,7 +64,7 @@ def verify_phone(request):
                 request.session['phone'] = phone
                 print(tokens)
                 # send_sms_with_template(phone, tokens, 'verify')
-                messages.error(request, 'verification code sent successfully')
+                messages.success(request, 'کد تأیید با موفقیت ارسال شد.')
                 return redirect('orders:verify_code')
     else:
         form = PhoneVerificationForm()
@@ -86,7 +87,7 @@ def verify_code(request):
                 request.session.pop('verification_expiry', None)
                 request.session.pop('verification_attempts', None)
 
-                messages.error(request, 'verification code expired')
+                messages.error(request, 'مهلت اعتبار کد تأیید به پایان رسیده است.')
                 return redirect('orders:verify_phone')
 
             if attempts >= 5:
@@ -95,13 +96,12 @@ def verify_code(request):
                 request.session.pop('verification_expiry', None)
                 request.session.pop('verification_code', None)
 
-                messages.error(request, 'Too many attempts. Please request a new code.')
+                messages.error(request, 'تعداد دفعات مجاز تلاش به پایان رسیده است. لطفاً کد جدیدی درخواست کنید.')
                 return redirect('orders:verify_phone')
 
             if code == verification_code:
                 user = ShopUser.objects.create_user(phone=phone)
-                user.set_password(phone)
-                user.save()
+
                 # sms
                 print(user)
                 login(request, user)
@@ -114,7 +114,7 @@ def verify_code(request):
                 attempts += 1
                 request.session['verification_attempts'] = attempts
                 remaining = 5 - attempts
-                messages.error(request, f'invalid verification code. remaining: {remaining}')
+                messages.error(request, f'کد تأیید نامعتبر است. تعداد تلاش‌های باقی‌مانده: {remaining}')
 
     expiry = request.session.get('verification_expiry')
     remaining_seconds = 0
@@ -236,6 +236,8 @@ def send_request(request):
         if response.status_code == 200:
             if response_json.get("data", {}).get("code") == 100:
                 authority = response_json["data"]["authority"]
+                order.authority = authority
+                order.save(update_fields=["authority"])
                 return redirect(ZP_API_STARTPAY + authority)
 
         return HttpResponse(
@@ -265,6 +267,13 @@ def verify(request):
             {"success": False},
         )
 
+    if authority != order.authority:
+        return render(
+            request,
+            "payment-tracking.html",
+            {"success": False},
+        )
+
     data = {
         "merchant_id": settings.MERCHANT,
         "amount": int(order.get_final_cost()),
@@ -284,16 +293,56 @@ def verify(request):
         code = response_json.get("data", {}).get("code")
 
         if response.status_code == 200 and code in (100, 101):
-            # جلوگیری از کم شدن دوباره موجودی
-            if not order.paid:
-                for item in order.items.all():
-                    item.product.inventory -= item.quantity
-                    item.product.save()
-
-                order.paid = True
-                order.save()
-
             reference_id = response_json["data"].get("ref_id")
+
+            if not reference_id:
+                return render(
+                    request,
+                    "payment-tracking.html",
+                    {"success": False},
+                )
+
+            try:
+                with transaction.atomic():
+                    # جلوگیری از پردازش دوباره سفارش
+                    order = Order.objects.select_for_update().get(
+                        id=order.id
+                    )
+
+                    if code == 100 and not order.paid:
+                        # ثبت تراکنش موفق
+                        Transaction.objects.get_or_create(
+                            gateway_transaction_id=reference_id,
+                            defaults={
+                                "order": order,
+                                "price": int(order.get_final_cost()),
+                            },
+                        )
+
+                        # کاهش موجودی محصولات
+                        for item in order.items.all():
+                            item.product.inventory -= item.quantity
+                            item.product.save(update_fields=["inventory"])
+
+                        # علامت‌گذاری سفارش به‌عنوان پرداخت‌شده
+                        order.paid = True
+                        order.status = Order.Status.CONFIRMED
+                        order.save(update_fields=["paid", "status"])
+
+                    elif code == 101 and not order.paid:
+                        # پرداخت قبلاً تأیید شده؛ موجودی را دوباره کم نکن.
+                        return render(
+                            request,
+                            "payment-tracking.html",
+                            {"success": False},
+                        )
+
+            except Order.DoesNotExist:
+                return render(
+                    request,
+                    "payment-tracking.html",
+                    {"success": False},
+                )
 
             request.session.pop("order_id", None)
 

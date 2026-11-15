@@ -16,6 +16,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     paid = models.BooleanField(default=False)
+    authority = models.CharField(max_length=255, null=True, blank=True, unique=True)
 
     class Status(models.TextChoices):
         PENDING = 'pending', 'در انتظار پرداخت'
@@ -70,3 +71,10 @@ class OrderItem(models.Model):
 
     def get_weight(self):
         return self.weight * self.quantity
+
+
+class Transaction(models.Model):
+    gateway_transaction_id = models.CharField(max_length=100, unique=True, verbose_name='شناسه تراکنش درگاه')
+    order = models.ForeignKey(Order, related_name='transactions', on_delete=models.CASCADE)
+    price = models.PositiveIntegerField(default=0, verbose_name='مبلغ تراکنش')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ تراکنش')
