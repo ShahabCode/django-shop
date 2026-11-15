@@ -1,48 +1,58 @@
 {% extends 'parent/base.html' %}
 
-{% block title %}ورود به حساب{% endblock %}
+{% block title %}ورود{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <h2>ورود به حساب کاربری</h2>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-5 col-xl-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-md-5">
 
-    <form method="post">
-        {% csrf_token %}
+                    <div class="text-center mb-4">
+                        <i class="bi bi-person-circle display-4 text-primary"></i>
+                        <h1 class="h4 mt-2">ورود به حساب کاربری</h1>
+                    </div>
 
-        {% if error %}
-            <p class="error-message">{{ error }}</p>
-        {% endif %}
+                    {% if error %}
+                        <div class="alert alert-danger py-2">{{ error }}</div>
+                    {% endif %}
 
-        <div class="form-group">
-            <label for="phone">شماره موبایل</label>
-            <input
-                type="text"
-                id="phone"
-                name="phone"
-                maxlength="11"
-                pattern="09[0-9]{9}"
-                placeholder="09123456789"
-                required
-                dir="ltr"
-            >
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">شماره موبایل</label>
+                            <input type="tel" class="form-control" id="phone" name="phone"
+                                   maxlength="11" pattern="09[0-9]{9}" inputmode="numeric"
+                                   placeholder="09123456789" dir="ltr" required autofocus
+                                   autocomplete="username"
+                                   title="شماره موبایل ۱۱ رقمی که با 09 شروع می‌شود"
+                                   value="{{ request.POST.phone }}">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label">رمز عبور</label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   required autocomplete="current-password">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">ورود</button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <a href="{% url 'account:otp_request' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-phone me-1"></i>ورود با کد پیامکی
+                        </a>
+                    </div>
+
+                    <p class="text-center small text-muted mt-4 mb-0">
+                        حساب کاربری نداری؟
+                        <a href="{% url 'account:register' %}">ثبت‌نام کن</a>
+                    </p>
+                </div>
+            </div>
         </div>
-
-        <div class="form-group">
-            <label for="password">رمز عبور</label>
-            <input
-                type="password"
-                id="password"
-                name="password"
-                required
-            >
-        </div>
-
-        <button type="submit">ورود</button>
-    </form>
-
-    <p class="auth-link">
-        حساب کاربری نداری؟
-        <a href="{% url 'account:register' %}">ثبت ‌نام کن</a>
-    </p>
+    </div>
 </div>
 {% endblock %}
