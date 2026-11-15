@@ -1,0 +1,44 @@
+{% load static %}
+{% comment %}
+    این صفحه عمداً از base.html ارث نمی‌بره (extends نداره).
+    Django موقع خطای ۵۰۰ این template رو بدون request و بدون context processor ها رندر می‌کنه،
+    و اگه خود base.html علت خطا باشه، صفحه‌ی خطا هم خراب می‌شه.
+    پس این فایل مستقل و فقط با CSS ثابت ساخته شده.
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>خطای سرور | فروشگاه</title>
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.rtl.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+</head>
+<body class="d-flex align-items-center min-vh-100">
+    <main class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body p-4 p-md-5">
+
+                        <div class="fw-bold" style="font-size: 6rem; line-height: 1; color: #dc2626;">۵۰۰</div>
+
+                        <h1 class="h4 mt-3 mb-3">مشکلی از سمت ما پیش اومد</h1>
+                        <p class="text-muted mb-4">
+                            خطایی در سرور رخ داد. لطفاً چند لحظه‌ی دیگه دوباره امتحان کن.
+                        </p>
+
+                        <div class="d-flex flex-wrap gap-2 justify-content-center">
+                            <a href="/" class="btn btn-primary">بازگشت به فروشگاه</a>
+                            <button type="button" class="btn btn-outline-secondary" onclick="location.reload()">
+                                تلاش دوباره
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
