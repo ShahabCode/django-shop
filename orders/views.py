@@ -1,5 +1,6 @@
 from io import BytesIO
-
+from django import forms
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 import datetime
 from pydoc import describe
@@ -7,9 +8,9 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .forms import PhoneVerificationForm, OrderCreateForm, OrderStatusForm
+from .forms import PhoneVerificationForm, OrderCreateForm, OrderStatusForm, ReturnRequestForm
 from account.models import ShopUser
-from .models import OrderItem, Order, Transaction
+from .models import OrderItem, Order, Transaction, ReturnRequest, ReturnImage
 from cart.cart import Cart
 import random
 from django.contrib.auth import authenticate, login, logout
@@ -547,3 +548,60 @@ def order_factor(request, order_id):
         filename=f"invoice-{order.id}.pdf",
         content_type="application/pdf",
     )
+
+
+MAX_RETURN_IMAGES = 5
+MAX_IMAGE_SIZE = 2 * 1024 * 1024  # ۲ مگابایت
+def validate_return_images(files):
+    """متن خطا یا None برمی‌گرداند."""
+    if len(files) > MAX_RETURN_IMAGES:
+        return f'حداکثر {MAX_RETURN_IMAGES} تصویر مجاز است.'
+
+    for f in files:
+        if f.size > MAX_IMAGE_SIZE:
+            return 'حجم هر تصویر نباید بیشتر از ۲ مگابایت باشد.'
+        try:
+            forms.ImageField().clean(f)   # با Pillow بررسی می‌کند فایل واقعاً عکس است
+        except ValidationError:
+            return 'فقط فایل تصویری (JPG، PNG و ...) مجاز است.'
+    return None
+
+
+@login_required
+def return_request_create(request, item_id):
+    item = get_object_or_404(OrderItem, id=item_id, order__buyer=request.user)
+
+    if not item.order.can_return:
+        messages.error(request, 'مهلت ۳ روزه‌ی مرجوعی گذشته است یا سفارش پرداخت نشده است.')
+        return redirect('orders:order_detail', item.order.id)
+
+    active = item.return_requests.filter(
+        status__in=[ReturnRequest.Status.PENDING, ReturnRequest.Status.APPROVED]
+    )
+    if active.exists():
+        messages.error(request, 'برای این آیتم، درخواست مرجوعی قبلاً ثبت شده است.')
+        return redirect('orders:order_detail', item.order.id)
+
+    if request.method == 'POST':
+        form = ReturnRequestForm(request.POST)
+        images = request.FILES.getlist('images')
+        error = validate_return_images(images)
+
+        if error:
+            messages.error(request, error)
+        elif form.is_valid():
+            with transaction.atomic():
+                return_request = form.save(commit=False)
+                return_request.user = request.user
+                return_request.order_item = item
+                return_request.save()
+
+                for image in images:
+                    ReturnImage.objects.create(return_request=return_request, image=image)
+
+            messages.success(request, 'درخواست مرجوعی شما با موفقیت ثبت شد.')
+            return redirect('orders:order_detail', item.order.id)
+    else:
+        form = ReturnRequestForm()
+
+    return render(request, 'return_request.html', {'form': form, 'item': item})

@@ -49,6 +49,7 @@
                                 <th scope="col" class="text-center">تعداد</th>
                                 <th scope="col">قیمت واحد</th>
                                 <th scope="col">جمع</th>
+                                <th scope="col">مرجوعی</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -62,6 +63,28 @@
                                     <td class="text-center">{{ item.quantity|fa_num }}</td>
                                     <td class="text-nowrap">{{ item.price|fa_num }}</td>
                                     <td class="text-nowrap fw-bold">{{ item.get_cost|fa_num }}</td>
+                                    <td>
+                                        {% with last=item.return_requests.first %}
+                                            {% if last %}
+                                                <span class="badge rounded-pill
+                                                    {% if last.status == 'pending' %}text-bg-warning
+                                                    {% elif last.status == 'approved' %}text-bg-success
+                                                    {% else %}text-bg-danger{% endif %}">
+                                                    مرجوعی: {{ last.get_status_display }}
+                                                </span>
+                                                {% if last.admin_note %}
+                                                    <div class="small text-muted mt-1">{{ last.admin_note }}</div>
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endwith %}
+
+                                        {% if item.can_request_return %}
+                                            <a href="{% url 'orders:return_request' item.id %}"
+                                               class="btn btn-outline-danger btn-sm text-nowrap">
+                                                <i class="bi bi-arrow-return-left me-1"></i>مرجوع کردن
+                                            </a>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
