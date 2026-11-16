@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from .otp import *
 from orders.forms import PhoneVerificationForm
-from .forms import ShopUserCreationForm, AddressForm
+from .forms import ShopUserCreationForm, AddressForm, ProfileForm
 from .models import Address, ShopUser
 
 
@@ -150,3 +150,16 @@ def otp_verify(request):
         remaining_seconds = max(0, int((expiry_time - timezone.now()).total_seconds()))
 
     return render(request, 'account/otp_verify.html', {'remaining_seconds': remaining_seconds})
+
+
+@login_required
+def profile_edit(request):
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'اطلاعات با موفقیت ویرایش شد')
+            return redirect('account:profile')
+    else:
+        form = ProfileForm(instance=request.user)
+    return render(request, 'account/profile.html', {'form': form})

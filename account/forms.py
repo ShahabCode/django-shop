@@ -105,3 +105,13 @@ class AddressForm(BootstrapFormMixin, forms.ModelForm):
             raise forms.ValidationError('کد پستی باید ۱۰ رقم و فقط شامل اعداد باشد.')
 
         return postal_code
+
+
+class ProfileForm(BootstrapFormMixin, forms.ModelForm):
+    class Meta:
+        model = ShopUser
+        fields = ['first_name', 'last_name']
+        labels = {
+            'first_name': 'نام',
+            'last_name': 'نام خانوادگی'
+        }
