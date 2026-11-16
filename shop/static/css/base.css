@@ -228,3 +228,7 @@ body { line-height: 1.8; }
 .site-footer a { color: #9ca3af; text-decoration: none; }
 .site-footer a:hover { color: #fff; }
 .copyright { background: #0b1220; color: #6b7280; }
+
+/* ---------- Product filters (AJAX) ---------- */
+#product-results { transition: opacity .15s ease; }
+#product-results.is-loading { opacity: .45; pointer-events: none; }

@@ -2,7 +2,7 @@ from django import forms
 
 from account.forms import BootstrapFormMixin
 from account.models import Address
-from .models import Order
+from .models import Order, ReturnRequest
 
 
 def validate_phone_number(phone):
@@ -106,3 +106,19 @@ class OrderStatusForm(BootstrapFormMixin, forms.ModelForm):
         model = Order
         fields = ('status',)
         labels = {'status': 'وضعیت سفارش'}
+
+
+class ReturnRequestForm(BootstrapFormMixin, forms.ModelForm):
+    class Meta:
+        model = ReturnRequest
+        fields = ('reason',)
+        labels = {'reason': 'دلیل مرجوع کردن'}
+        widgets = {
+            'reason': forms.Textarea(attrs={'rows': 4}),
+        }
+
+    def clean_reason(self):
+        reason = self.cleaned_data['reason'].strip()
+        if len(reason) < 10:
+            raise forms.ValidationError('لطفاً دلیل مرجوعی را کامل‌تر توضیح دهید.')
+        return reason

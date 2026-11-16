@@ -1,0 +1,55 @@
+{% extends 'parent/base.html' %}
+
+{% block title %}ویرایش پروفایل{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <h1 class="h4 mb-4"><i class="bi bi-person-circle me-2"></i>پروفایل من</h1>
+
+    <div class="row g-4">
+
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="h6 mb-3">اطلاعات شخصی</h2>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% for error in form.non_field_errors %}
+                            <div class="alert alert-danger py-2">{{ error }}</div>
+                        {% endfor %}
+
+                        <div class="mb-3">
+                            <label class="form-label">شماره موبایل</label>
+                            <input type="text" class="form-control" value="{{ user.phone }}" dir="ltr" disabled>
+                            <div class="form-text">شماره موبایل قابل تغییر نیست.</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">{% include 'partials/form_field.html' with field=form.first_name %}</div>
+                            <div class="col-md-6">{% include 'partials/form_field.html' with field=form.last_name %}</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'orders:orders_list' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-box-seam me-2"></i>سفارش‌های من
+                    </a>
+                    <a href="{% url 'account:address_list' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-geo-alt me-2"></i>آدرس‌های من
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

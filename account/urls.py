@@ -12,4 +12,5 @@ urlpatterns = [
     path('addresses/<int:address_id>/default/', views.set_default_address, name='set_default_address'),
     path('otp/', views.otp_request, name='otp_request'),
     path('otp/verify/', views.otp_verify, name='otp_verify'),
+    path('profile/', views.profile_edit, name='profile'),
 ]
