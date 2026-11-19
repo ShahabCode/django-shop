@@ -54,7 +54,10 @@
                     {{ product.category.name }}
                 </a>
 
-                <h1 class="h3 mb-3">{{ product.name }}</h1>
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                    <h1 class="h3 mb-0">{{ product.name }}</h1>
+                    {% include 'shop/_favorite_button.html' %}
+                </div>
 
                 <div class="mb-3">
                     {% if product.inventory > 0 %}

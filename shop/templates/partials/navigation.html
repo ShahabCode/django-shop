@@ -66,6 +66,12 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{% url 'account:profile' %}"><i class="bi bi-person me-2"></i>ویرایش پروفایل</a></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'shop:favorite_list' %}">
+                                    <i class="bi bi-heart me-2"></i>علاقه‌مندی‌ها
+                                    <span class="badge rounded-pill text-bg-light border ms-1" data-favorite-count>{{ user.favorites.count|fa_num }}</span>
+                                </a>
+                            </li>
                             <li><a class="dropdown-item" href="{% url 'orders:orders_list' %}"><i class="bi bi-box-seam me-2"></i>سفارش‌های من</a></li>
                             <li><a class="dropdown-item" href="{% url 'account:address_list' %}"><i class="bi bi-geo-alt me-2"></i>آدرس‌های من</a></li>
                             {% if user.is_staff %}

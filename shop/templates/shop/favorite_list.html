@@ -1,0 +1,36 @@
+{% extends 'parent/base.html' %}
+{% load shop_extras %}
+
+{% block title %}علاقه‌مندی‌ها{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{% url 'shop:products' %}">فروشگاه</a></li>
+            <li class="breadcrumb-item active" aria-current="page">علاقه‌مندی‌ها</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h4 mb-0"><i class="bi bi-heart-fill text-danger me-2"></i>علاقه‌مندی‌های من</h1>
+        <span class="small text-muted">{{ favorites|length|fa_num }} محصول</span>
+    </div>
+
+    {% if favorites %}
+        {# data-favorites-page: با حذف از لیست، کارت از همین صفحه برداشته می‌شود #}
+        <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-3" data-favorites-page>
+            {% for fav in favorites %}
+                {% include 'shop/_product_card.html' with product=fav.product is_fav=True %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 bg-white rounded-3 shadow-sm">
+            <i class="bi bi-heart display-3 text-muted"></i>
+            <p class="mt-3 mb-3">هنوز محصولی به علاقه‌مندی‌ها اضافه نکرده‌اید.</p>
+            <a href="{% url 'shop:products' %}" class="btn btn-primary">مشاهده محصولات</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
