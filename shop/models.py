@@ -2,6 +2,8 @@ from django.db import models
 from django.urls import reverse
 from rest_framework.exceptions import ValidationError
 
+from account.models import ShopUser
+
 
 # Create your models here.
 class Category(models.Model):
@@ -84,3 +86,21 @@ class Image(models.Model):
         indexes = [models.Index(fields=['-created'])]
         verbose_name = "تصویر"
         verbose_name_plural = "تصویر ها"
+
+
+class FavoriteProduct(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='favorites')
+    user = models.ForeignKey(ShopUser, on_delete=models.CASCADE, related_name='favorites')
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'product'],
+                name='unique_user_product_favorite',
+            )
+        ]
+        ordering = ['-created']
+
+    def __str__(self):
+        return f'{self.user} - {self.product.name}'

@@ -232,3 +232,32 @@ body { line-height: 1.8; }
 /* ---------- Product filters (AJAX) ---------- */
 #product-results { transition: opacity .15s ease; }
 #product-results.is-loading { opacity: .45; pointer-events: none; }
+
+/* ---------- Favorites (heart button) ---------- */
+.fav-btn {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 50%;
+    background: #fff;
+    color: #6b7280;
+    font-size: 1.05rem;
+    transition: color .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+
+.fav-btn:hover { color: var(--shop-accent); transform: scale(1.08); }
+.fav-btn.active { color: var(--shop-accent); border-color: #fecdd3; }
+.fav-btn:disabled { opacity: .6; }
+
+.fav-overlay {
+    position: absolute;
+    top: .6rem;
+    inset-inline-end: .6rem;
+    z-index: 3;
+    box-shadow: 0 .25rem .6rem rgba(17, 24, 39, .12);
+}

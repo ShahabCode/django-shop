@@ -15,6 +15,7 @@
             {% if product.discount_percent %}
                 <span class="badge rounded-pill discount-badge">{{ product.discount_percent|fa_num }}٪</span>
             {% endif %}
+            {% include 'shop/_favorite_button.html' with overlay=True %}
         </div>
 
         <div class="card-body d-flex flex-column pb-2">

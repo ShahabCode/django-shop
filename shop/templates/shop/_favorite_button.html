@@ -1,0 +1,14 @@
+{# استفاده: {% include 'shop/_favorite_button.html' with product=product overlay=True %} #}
+{% if is_fav or product.id in favorite_ids %}
+    <button type="button" class="fav-btn active {% if overlay %}fav-overlay{% endif %}"
+            data-favorite-toggle data-url="{% url 'shop:toggle_favorite' product.id %}"
+            aria-pressed="true" aria-label="حذف از علاقه‌مندی‌ها" title="حذف از علاقه‌مندی‌ها">
+        <i class="bi bi-heart-fill"></i>
+    </button>
+{% else %}
+    <button type="button" class="fav-btn {% if overlay %}fav-overlay{% endif %}"
+            data-favorite-toggle data-url="{% url 'shop:toggle_favorite' product.id %}"
+            aria-pressed="false" aria-label="افزودن به علاقه‌مندی‌ها" title="افزودن به علاقه‌مندی‌ها">
+        <i class="bi bi-heart"></i>
+    </button>
+{% endif %}

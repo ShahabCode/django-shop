@@ -1,8 +1,11 @@
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.views.decorators.vary import vary_on_headers
-
-from .models import Category, Product
+from django.views.decorators.http import require_POST
+from .models import Category, Product, FavoriteProduct
 
 PRODUCTS_PER_PAGE = 12
 
@@ -44,6 +47,10 @@ def product_list(request, category_slug=None):
     paginator = Paginator(products, PRODUCTS_PER_PAGE)
     page = paginator.get_page(request.GET.get('page'))
 
+    favorite_ids = set()
+    if request.user.is_authenticated:
+        favorite_ids = set(request.user.favorites.all().values_list('product_id', flat=True))
+
     context = {
         'category': category,
         'products': page,
@@ -52,6 +59,7 @@ def product_list(request, category_slug=None):
         'in_stock': in_stock,
         'min_price': min_price,
         'max_price': max_price,
+        'favorite_ids': favorite_ids,
     }
 
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -76,8 +84,47 @@ def product_detail(request, id, slug):
         .prefetch_related('images')[:4]
     )
 
+    favorite_ids = set()
+    if request.user.is_authenticated:
+        favorite_ids = set(request.user.favorites.all().values_list('product_id', flat=True))
+
     context = {
         'product': product,
         'related_products': related_products,
+        'favorite_ids': favorite_ids,
     }
     return render(request, 'shop/detail.html', context)
+
+
+@require_POST
+def toggle_favorite(request, product_id):
+    user = request.user
+
+    if not user.is_authenticated:
+        return JsonResponse(
+            {'success': False, 'error': 'login_required', 'login_url': reverse('account:login')},
+            status=401
+        )
+
+    product = get_object_or_404(Product, id=product_id)
+    favorite, created = FavoriteProduct.objects.get_or_create(product=product, user=user)
+
+    if not created:
+        favorite.delete()
+
+    return JsonResponse({
+        'success': True,
+        'is_favorite': created,
+        'count': user.favorites.count(),
+    })
+
+
+@login_required
+def favorite_list(request):
+    favorites = (
+        FavoriteProduct.objects
+        .filter(user=request.user)
+        .select_related('product__category')
+        .prefetch_related('product__images')
+    )
+    return render(request, 'shop/favorite_list.html', {'favorites': favorites})

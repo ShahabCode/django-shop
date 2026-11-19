@@ -18,8 +18,13 @@
             headers: {'X-CSRFToken': getCsrfToken(), 'X-Requested-With': 'XMLHttpRequest'},
             body: new URLSearchParams(data),
             credentials: 'same-origin',
-        }).then((response) => {
-            if (!response.ok) throw new Error('HTTP ' + response.status);
+        }).then(async (response) => {
+            if (!response.ok) {
+                const err = new Error('HTTP ' + response.status);
+                err.status = response.status;
+                err.data = await response.json().catch(() => null);
+                throw err;
+            }
             return response.json();
         });
     }
@@ -207,6 +212,63 @@
                 const minus = row.querySelector('[data-cart-action="decrease"]');
                 if (minus) minus.disabled = Number(row.dataset.qty) <= 1;
             }
+        }
+    });
+
+    // ---------- علاقه‌مندی‌ها (قلب) ----------
+    function setFavoriteState(btn, isFavorite) {
+        btn.classList.toggle('active', isFavorite);
+        btn.setAttribute('aria-pressed', String(isFavorite));
+        const label = isFavorite ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها';
+        btn.setAttribute('aria-label', label);
+        btn.title = label;
+
+        const icon = btn.querySelector('i');
+        if (icon) {
+            icon.classList.toggle('bi-heart-fill', isFavorite);
+            icon.classList.toggle('bi-heart', !isFavorite);
+        }
+    }
+
+    document.addEventListener('click', async (event) => {
+        const btn = event.target.closest('[data-favorite-toggle]');
+        if (!btn) return;
+
+        event.preventDefault();
+        btn.disabled = true;
+
+        try {
+            const data = await post(btn.dataset.url, {});
+            if (!data.success) throw new Error(data.error);
+
+            setFavoriteState(btn, data.is_favorite);
+            setText('[data-favorite-count]', data.count);
+
+            if (data.is_favorite) {
+                toast('به علاقه‌مندی‌ها اضافه شد', 'success');
+            } else {
+                toast('از علاقه‌مندی‌ها حذف شد', 'secondary');
+
+                // در صفحه‌ی علاقه‌مندی‌ها، کارت حذف می‌شود
+                if (btn.closest('[data-favorites-page]')) {
+                    const card = btn.closest('.col');
+                    if (card) card.remove();
+                    if (!document.querySelector('[data-favorites-page] .product-card')) {
+                        location.reload();  // نمایش حالت «لیست خالی»
+                    }
+                }
+            }
+        } catch (err) {
+            if (err.status === 401) {
+                const next = encodeURIComponent(location.pathname + location.search);
+                const loginUrl = (err.data && err.data.login_url) ? err.data.login_url + '?next=' + next : null;
+                toast('برای استفاده از علاقه‌مندی‌ها ابتدا وارد شوید', 'warning', loginUrl, 'ورود');
+            } else {
+                console.error(err);
+                toast('خطا در ثبت علاقه‌مندی: ' + err.message, 'danger');
+            }
+        } finally {
+            btn.disabled = false;
         }
     });
 
