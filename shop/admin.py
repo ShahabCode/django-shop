@@ -24,3 +24,9 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ['category', 'created', 'updated']
     search_fields = ['name', 'description']
     inlines = [ImageInline, FeatureInline]
+
+
+@admin.register(FavoriteProduct)
+class FavoriteProductAdmin(admin.ModelAdmin):
+    list_display = ['user', 'product', 'created']
+    list_filter = ['user', 'created']
