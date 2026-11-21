@@ -10,7 +10,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .forms import PhoneVerificationForm, OrderCreateForm, OrderStatusForm, ReturnRequestForm
 from account.models import ShopUser
-from .models import OrderItem, Order, Transaction, ReturnRequest, ReturnImage
+from .models import OrderItem, Order, Transaction, ReturnRequest, ReturnImage, Coupon
 from cart.cart import Cart
 import random
 from django.contrib.auth import authenticate, login, logout
@@ -43,6 +43,7 @@ from reportlab.platypus import (
 from django.conf import settings
 from pathlib import Path
 from django.db import transaction
+from django.views.decorators.http import require_POST
 
 
 # Create your views here.
@@ -143,6 +144,12 @@ def order_create(request):
         if form.is_valid():
             order = form.save(commit=False)
             order.buyer = request.user
+
+            coupon = cart.coupon          # Coupon معتبر یا None
+            if coupon:
+                order.coupon = coupon
+                order.discount_percent = coupon.discount_percent
+
             order.save()
 
             for item in cart:
@@ -155,6 +162,7 @@ def order_create(request):
                 )
 
             cart.clear()
+            request.session.pop('coupon', None)
             request.session['order_id'] = order.id
 
             return redirect('orders:request')
@@ -605,3 +613,19 @@ def return_request_create(request, item_id):
         form = ReturnRequestForm()
 
     return render(request, 'return_request.html', {'form': form, 'item': item})
+
+
+@login_required
+@require_POST
+def apply_code(request):
+    code = request.POST.get('code', '').strip()
+    coupon = Coupon.objects.filter(code=code).first()
+
+    if not coupon:
+        messages.error(request, 'کد تخفیف وارد شده وجود ندارد')
+    elif not coupon.is_valid:
+        messages.error(request, 'کد تخفیف وارد شده منقضی شده است')
+    else:
+        request.session['coupon'] = coupon.id
+        messages.success(request, 'کد تخفیف اعمال شد')
+    return redirect('orders:order_create')
