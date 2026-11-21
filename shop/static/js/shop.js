@@ -85,6 +85,12 @@
         setText('[data-items-count]', data.item_count);
         setText('[data-cart-total]', data.total_price);
 
+        if ('discount' in data) {
+            setText('[data-discount]', data.discount);
+            document.querySelectorAll('[data-discount-row]').forEach((el) => {
+                el.classList.toggle('d-none', !data.discount);
+            });
+        }
         if ('post_price' in data) setText('[data-post-price]', data.post_price);
         if ('final_price' in data) setText('[data-final-price]', data.final_price);
     }

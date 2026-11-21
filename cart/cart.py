@@ -1,5 +1,3 @@
-from django.template.context_processors import request
-
 from shop.models import Product
 
 class Cart:
@@ -63,10 +61,6 @@ class Cart:
         return 50000
 
 
-    def get_final_price(self):
-        return self.get_total_price() + self.get_post_price()
-
-
     def __len__(self):
         return sum(item['quantity'] for item in self.cart.values())
 
@@ -84,6 +78,30 @@ class Cart:
             item['total'] = item['price'] * item['quantity']
 
             yield item
+
+
+    @property
+    def coupon(self):
+        from orders.models import Coupon
+
+        coupon_id = self.session.get('coupon')
+        if not coupon_id:
+            return None
+
+        coupon = Coupon.objects.filter(id=coupon_id).first()
+        if coupon and coupon.is_valid:
+            return coupon
+        return None
+
+    def get_discount(self):
+        coupon = self.coupon
+        if not coupon:
+            return 0
+        return self.get_total_price() * coupon.discount_percent // 100
+
+    def get_final_price(self):
+        return self.get_total_price() - self.get_discount() + self.get_post_price()
+
 
     def save(self):
         self.session['cart'] = self.cart

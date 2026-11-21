@@ -77,10 +77,32 @@
 
                         <hr>
 
+                        {# کد تخفیف: input و دکمه با form="coupon-form" به فرم جداگانه‌ی پایین صفحه وصل‌اند #}
+                        <label for="coupon-code" class="form-label small text-muted mb-1">کد تخفیف</label>
+                        <div class="input-group mb-1">
+                            <input type="text" id="coupon-code" name="code" form="coupon-form"
+                                   class="form-control" dir="ltr" maxlength="20" autocomplete="off"
+                                   placeholder="مثلاً OFF20" value="{{ cart.coupon.code|default:'' }}">
+                            <button type="submit" form="coupon-form" class="btn btn-outline-primary">اعمال</button>
+                        </div>
+                        {% if cart.coupon %}
+                            <div class="small text-success mb-3">
+                                <i class="bi bi-check-circle me-1"></i>کد {{ cart.coupon.code }} اعمال شد
+                            </div>
+                        {% else %}
+                            <div class="mb-3"></div>
+                        {% endif %}
+
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">قیمت کالاها</span>
                             <span>{{ cart.get_total_price|fa_num }} تومان</span>
                         </div>
+                        {% if cart.get_discount %}
+                            <div class="d-flex justify-content-between mb-2 text-success">
+                                <span>تخفیف ({{ cart.coupon.discount_percent|fa_num }}٪)</span>
+                                <span>− {{ cart.get_discount|fa_num }} تومان</span>
+                            </div>
+                        {% endif %}
                         <div class="d-flex justify-content-between mb-3">
                             <span class="text-muted">هزینه ارسال</span>
                             <span>{{ cart.get_post_price|fa_num }} تومان</span>
@@ -97,6 +119,11 @@
                 </div>
             </div>
         </div>
+    </form>
+
+    {# فرم کد تخفیف (جدا از فرم اصلی، چون فرم تو در تو در HTML مجاز نیست) #}
+    <form id="coupon-form" method="post" action="{% url 'orders:apply_code' %}">
+        {% csrf_token %}
     </form>
 </div>
 {% endblock %}
@@ -115,6 +142,42 @@
 
         addressSelect.addEventListener('change', toggleAddressFields);
         toggleAddressFields();
+    })();
+
+    // با زدن «اعمال» صفحه دوباره بارگذاری می‌شود؛ مقادیر فرمِ در حال پر شدن را نگه می‌داریم
+    (function () {
+        const KEY = 'order-create-draft';
+        const mainForm = document.querySelector('form[method="post"]:not(#coupon-form)');
+        const couponForm = document.getElementById('coupon-form');
+        if (!mainForm || !couponForm) return;
+
+        function fields() {
+            return Array.from(mainForm.elements).filter(
+                (el) => el.name && el.name !== 'csrfmiddlewaretoken' && el.name !== 'code' && el.type !== 'submit'
+            );
+        }
+
+        couponForm.addEventListener('submit', () => {
+            try {
+                const draft = {};
+                fields().forEach((el) => { draft[el.name] = el.value; });
+                sessionStorage.setItem(KEY, JSON.stringify(draft));
+            } catch (e) { /* بدون ذخیره هم کار می‌کند */ }
+        });
+
+        try {
+            const saved = sessionStorage.getItem(KEY);
+            if (!saved) return;
+            sessionStorage.removeItem(KEY);
+
+            const draft = JSON.parse(saved);
+            fields().forEach((el) => {
+                if (el.name in draft) {
+                    el.value = draft[el.name];
+                    el.dispatchEvent(new Event('change', {bubbles: true}));
+                }
+            });
+        } catch (e) { /* نادیده بگیر */ }
     })();
 </script>
 {% endblock %}

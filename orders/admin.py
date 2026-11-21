@@ -99,3 +99,9 @@ class ReturnRequestAdmin(admin.ModelAdmin):
             status=ReturnRequest.Status.REJECTED
         )
         self.message_user(request, f'{updated} درخواست رد شد.', messages.SUCCESS)
+
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ['code', 'discount_percent', 'valid_from', 'valid_to', 'is_active']
+    list_filter = ['discount_percent', 'valid_from', 'valid_to', 'is_active']
