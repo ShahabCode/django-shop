@@ -87,6 +87,10 @@
                         <span class="text-muted">قیمت کالاها</span>
                         <span><span data-cart-total>{{ cart.get_total_price|fa_num }}</span> تومان</span>
                     </div>
+                    <div class="d-flex justify-content-between mb-2 text-success {% if not cart.get_discount %}d-none{% endif %}" data-discount-row>
+                        <span>تخفیف{% if cart.coupon %} ({{ cart.coupon.code }}){% endif %}</span>
+                        <span>− <span data-discount>{{ cart.get_discount|fa_num }}</span> تومان</span>
+                    </div>
                     <div class="d-flex justify-content-between mb-3">
                         <span class="text-muted">هزینه ارسال</span>
                         <span><span data-post-price>{{ cart.get_post_price|fa_num }}</span> تومان</span>
