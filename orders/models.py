@@ -4,8 +4,41 @@ from django.db.models.fields import PositiveIntegerField
 from django.utils import timezone
 from account.models import ShopUser
 from shop.models import Product
+from django.core.exceptions import ValidationError
 
 # Create your models here.
+
+class Coupon(models.Model):
+    code = models.CharField(max_length=20, unique=True)
+    discount_percent = models.PositiveIntegerField(default=0)
+    valid_from = models.DateTimeField(default=timezone.now)
+    valid_to = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+
+    def clean(self):
+        super().clean()
+
+        if not 0 <= self.discount_percent <= 100:
+            raise ValidationError({
+                'discount_percent': 'درصد تخفیف باید بین ۰ تا ۱۰۰ باشد.'
+            })
+
+        if self.valid_from and self.valid_to:
+            if self.valid_from >= self.valid_to:
+                raise ValidationError({
+                    'valid_to': 'تاریخ پایان باید بعد از تاریخ شروع باشد.'
+                })
+
+    @property
+    def is_valid(self):
+        if self.is_active and self.valid_from <= timezone.now() <= self.valid_to:
+            return True
+        return False
+
+    def __str__(self):
+        return f'Coupon #{self.code} - {self.discount_percent}%'
+
+
 RETURN_DAYS = 3
 class Order(models.Model):
     buyer = models.ForeignKey(ShopUser, related_name='Orders', on_delete=models.SET_NULL, null=True)
@@ -20,6 +53,9 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     paid = models.BooleanField(default=False)
     authority = models.CharField(max_length=255, null=True, blank=True, unique=True)
+    coupon = models.ForeignKey(Coupon,related_name='orders',on_delete=models.SET_NULL,null=True,blank=True)
+    discount_percent = models.PositiveIntegerField(default=0)
+
 
     class Status(models.TextChoices):
         PENDING = 'pending', 'در انتظار پرداخت'
@@ -54,8 +90,16 @@ class Order(models.Model):
         else:
             return 50000
 
+    def get_discount(self):
+        discount = self.get_total_cost() * self.discount_percent // 100
+        return discount
+
     def get_final_cost(self):
-        price = self.get_post_cost() + self.get_total_cost()
+        price = (
+                self.get_total_cost()
+                - self.get_discount()
+                + self.get_post_cost()
+        )
         return price
 
     @property
